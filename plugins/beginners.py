@@ -12,7 +12,7 @@ from S2Wrapper import Savage2DaemonHandler
 
 
 class beginners(ConsolePlugin):
-	VERSION = "0.0.3"
+	VERSION = "1.0.0"
 	ms = None
 	TIME = 0
 	GAMESTARTED = 0
@@ -28,6 +28,7 @@ class beginners(ConsolePlugin):
 	SFLIMIT = 110
 	LEVELLIMIT = 10
 	MATCHLIMIT = 4
+	
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
@@ -273,7 +274,7 @@ class beginners(ConsolePlugin):
 					#players['banned'] = True
 					#players['banstamp'] = self.MATCHES
 					#kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
-				kwargs['Broadcast'].broadcast("echo BEGINNERS: Player: %s, Kills: %s, Over?: %s" % (players['name'], players['kills'], over))
+					kwargs['Broadcast'].broadcast("echo BEGINNERS: Player: %s, Kills: %s, Over?: %s" % (players['name'], players['kills'], over))
 				
 				
 	def onMessage(self, *args, **kwargs):
@@ -287,5 +288,6 @@ class beginners(ConsolePlugin):
 			for bans in self.playerlist:
 				if bans['banned']:
 					kwargs['Broadcast'].broadcast("SendMessage %s Banned: %s, IP: %s" % (client['clinum'], bans['name'], bans['ip']))
+
 
 
