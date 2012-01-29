@@ -17,7 +17,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.3.6"
+	VERSION = "1.4.0"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -80,7 +80,8 @@ class admin(ConsolePlugin):
 		#these are for identifying bought and sold items
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# SOLD #_item#; echo\" sellitem")
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# BOUGHT #_item#; echo\" buyitem")
-
+		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
+		
 	def getPlayerByClientNum(self, cli):
 
 		for client in self.playerlist:
@@ -205,7 +206,7 @@ class admin(ConsolePlugin):
 		admin = self.isAdmin(client, **kwargs)
 		superuser = self.isSuperuser(client, **kwargs)
 
-		#ADDED: more than 5 message in 1 second = kick
+		#ADDED: more than 4 message in 1 second = kick
 		tm = time.time()
 		last = self.LASTMESSAGE['lasttime']
 		first = self.LASTMESSAGE['firsttime']
@@ -223,7 +224,7 @@ class admin(ConsolePlugin):
 			self.LASTMESSAGE['firsttime'] = tm
 			self.LASTMESSAGE['repeat'] = 0	
 			
-		if self.LASTMESSAGE['repeat'] > 4:
+		if self.LASTMESSAGE['repeat'] > 3:
 			if ((last - first) < 1):
 				reason = "Spamming chat results in automatic kicking."
 				kwargs['Broadcast'].broadcast(\
@@ -306,6 +307,7 @@ class admin(ConsolePlugin):
 				"set _slapindex #GetIndexFromClientNum(%s)#;\
 				 set _sx #GetPosX(|#_slapindex|#)#; set _sy #GetPosY(|#_slapindex|#)#; set _sz #GetPosZ(|#_slapindex|#)#;\
 				 SetPosition #_slapindex# [_sx + 200] [_sy + 200] #_sz#;\
+				 SetToValidPosition #_slapindex#;\
 				 SendMessage %s ^cAn adminstrator has moved you for jumping on buildings. YOU WILL BE BANNED if this action persists"\
 				 % (slapclient['clinum'], slapclient['clinum']))
 			
@@ -580,7 +582,7 @@ class admin(ConsolePlugin):
 			"SendMessage %s You have shuffled the game." % (clinum))
 		#Run balancer to get it nice and even
 		self.onBalance(clinum, **kwargs)
-		
+		kwargs['Broadcast'].broadcast("Startgame")
 		
 	def onBalance(self, *args, **kwargs):
 
@@ -604,7 +606,7 @@ class admin(ConsolePlugin):
 		
 		teamonestats = self.getTeamInfo(teamone)
 		teamtwostats = self.getTeamInfo(teamtwo)
-		startstack = self.evaluateBalance(teamone, teamtwo)
+		startstack = abs(self.evaluateBalance(teamone, teamtwo))
 		
 		#Send message to admin that called the shuffle/balance
 		kwargs['Broadcast'].broadcast(\
@@ -624,7 +626,7 @@ class admin(ConsolePlugin):
 				if player2['commander']:
 					continue
 				#sort of inefficient to send the teamlist each time				
-				ltarget = self.evaluateBalance(teamone, teamtwo, player1, player2, True)
+				ltarget = abs(self.evaluateBalance(teamone, teamtwo, player1, player2, True))
 				
 				if (lowest < 0):
 					lowest = ltarget
@@ -819,3 +821,6 @@ class admin(ConsolePlugin):
 		
 		client['value'] = 0
 
+	def getMatchID(self, *args, **kwargs):
+		matchid = args[0]
+		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Description %s" % (matchid))

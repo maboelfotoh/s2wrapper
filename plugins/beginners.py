@@ -25,15 +25,15 @@ class beginners(ConsolePlugin):
 	adminlist = []
 	ipban = []
 	BANMATCH = 20
-	SFLIMIT = 0
-	LEVELLIMIT = 0
+	SFLIMIT = 110
+	LEVELLIMIT = 10
 	MATCHLIMIT = 4
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
 		ini = ConfigParser.ConfigParser()
 		ini.read(config)
-
+		
 		for (name, value) in ini.items('var'):
 			if (name == "banmatch"):
 				self.BANMATCH = int(value)
@@ -46,12 +46,12 @@ class beginners(ConsolePlugin):
 
 		for (name, value) in ini.items('ipban'):
 			self.ipban.append(name)
-		#added to allow admins to join beginners servers
-		admin = os.path.join(os.path.dirname(config),'admin.ini')	
-		ini.read(admin)
-		
+
+		admins = os.path.join(os.path.dirname(config),'admin.ini')	
+		ini.read(admins)
+
 		for (name, value) in ini.items('admin'):
-			self.adminlist.append(name)
+			self.adminlist.append({'name': name, 'level' : value})
 		print self.adminlist
 		pass
 
@@ -128,6 +128,11 @@ class beginners(ConsolePlugin):
 		wins = int(stats['wins'])
 		losses = int(stats['losses'])
 		dcs = int(stats['d_conns'])
+		exp = int(stats['exp'])
+		time = int(stats['secs'])
+		if sf == 0 and time > 0:
+			time = time/60
+			sf = int(exp/time)
 		total = wins + losses + dcs
 
 		client = self.getPlayerByClientNum(cli)
@@ -157,13 +162,14 @@ class beginners(ConsolePlugin):
 			reason = reason1
 			doKick = True
 
-		#allow admins to join
 		for each in self.adminlist:
-			if client['name'].lower() == each:
-				doKick = False
+			if each['name'].lower() == client['name'].lower():
+				doKick = False			
+				client['banned'] = False
 		if doKick:
 			kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
 
+		print client
 
 	def onTeamChange (self, *args, **kwargs):
 		
@@ -183,15 +189,8 @@ class beginners(ConsolePlugin):
 			self.onGameEnd()
 		if (phase == 5):
 			self.onGameStart(*args, **kwargs)
-		if (phase == 6):
-			self.onNewGame(**kwargs)			
+		
 	
-	def onNewGame(self, *args, **kwargs):
-		reason = "Congratulations! You have done a great job and have graduated from this server."
-		for each in self.playerlist:
-			if each['banned']:		
-				kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (each['clinum'], reason))
-
 	def onGameEnd(self, *args, **kwargs):
 						
 		self.MATCHES += 1
@@ -220,8 +219,7 @@ class beginners(ConsolePlugin):
 			
 		if self.PHASE == 5:
 			if (self.TIME > (10 * 60 * 1000)):
-				#self.smurfCheck (**kwargs)
-				print 'check'	
+				self.smurfCheck (**kwargs)			
 
 	def onGetLevels(self, *args, **kwargs):
 		clinum = args[0]
@@ -244,7 +242,7 @@ class beginners(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))	
 		
 	def onHasKilled(self, *args, **kwargs):
-		print args
+		
 		killed = self.getPlayerByName(args[0])
 		killer = self.getPlayerByName(args[1])
 		
@@ -272,8 +270,8 @@ class beginners(ConsolePlugin):
 				if (players['kills'] > (avgkills * 3)) and (players['kills'] > 20):
 					over = 'Yes'
 					cli = players['clinum']
-					players['banned'] = True
-					players['banstamp'] = self.MATCHES
+					#players['banned'] = True
+					#players['banstamp'] = self.MATCHES
 					#kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
 				kwargs['Broadcast'].broadcast("echo BEGINNERS: Player: %s, Kills: %s, Over?: %s" % (players['name'], players['kills'], over))
 				
