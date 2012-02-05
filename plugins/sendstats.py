@@ -101,7 +101,7 @@ class sendstats(ConsolePlugin):
 			except:
 				continue
 
-		self.uploadreplay()
+		#self.uploadreplay()
 		
 	def uploadevent(self):
 
