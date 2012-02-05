@@ -23,6 +23,7 @@ class sendstats(ConsolePlugin):
 	broadcast = 0
 	serverid = 0
 	loaded = False
+	sending = False
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 		ini = ConfigParser.ConfigParser()
@@ -56,7 +57,8 @@ class sendstats(ConsolePlugin):
 						 
 			uploadthread = thread.start_new_thread(self.uploadstats, ())
 			#eventthread  = thread.start_new_thread(self.uploadevent, ())
-			#replaythread = thread.start_new_thread(self.uploadreplay, ())
+			if not self.sending:
+				replaythread = thread.start_new_thread(self.uploadreplay, ())
 			
 		
 
@@ -150,6 +152,7 @@ class sendstats(ConsolePlugin):
 			
 	def uploadreplay(self):
 		print 'starting uploadreplay'
+		self.sending = True
 		self.ss = StatsServers ()
 		home  = os.environ['HOME']
 		path = 	os.path.join(home, self.base)
@@ -177,6 +180,8 @@ class sendstats(ConsolePlugin):
 				os.remove(os.path.join(home, self.base, infile))
 			except:
 				continue
+				
+		self.sending = False
 				
 	def getPlayerByClientNum(self, cli):
 
