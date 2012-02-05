@@ -308,7 +308,6 @@ class admin(ConsolePlugin):
 				"set _slapindex #GetIndexFromClientNum(%s)#;\
 				 set _sx #GetPosX(|#_slapindex|#)#; set _sy #GetPosY(|#_slapindex|#)#; set _sz #GetPosZ(|#_slapindex|#)#;\
 				 SetPosition #_slapindex# [_sx + 200] [_sy + 200] #_sz#;\
-				 SetToValidPosition #_slapindex#;\
 				 SendMessage %s ^cAn adminstrator has moved you for jumping on buildings. YOU WILL BE BANNED if this action persists"\
 				 % (slapclient['clinum'], slapclient['clinum']))
 			
