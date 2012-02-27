@@ -28,7 +28,7 @@ class admin(ConsolePlugin):
 	UPDATE = True
 	NEEDRELOAD = False
 	LASTMESSAGE = {'client' : None, 'firsttime' : 0, 'lasttime' : 0, 'repeat' : 0}
-
+	DLL = '2f4827b8'
 
 	def onPluginLoad(self, config):
 		
@@ -82,6 +82,7 @@ class admin(ConsolePlugin):
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# BOUGHT #_item#; echo\" buyitem")
 		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Name \"S2WRAPPER\"")
+		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
 		
 	def getPlayerByClientNum(self, cli):
 
@@ -151,7 +152,8 @@ class admin(ConsolePlugin):
 		client['sf'] = sf
 		client['level'] = level
 		client['active'] = True
-		
+		kwargs['Broadcast'].broadcast(\
+ 		"clientexecscript %s clientdo cmd \"set _vr #StringLength(|#GetCheckSum(cgame.dll)|#)#; if [_vr > 0] \\\"SendScriptInput what DLL value #getchecksum(cgame.dll)#\\\"; Else \\\"SendScriptInput what DLL value NONE\\\"\"" % (client['clinum']))
 		#If client has disconnected, give them their gold back
 		self.giveGold(False, client, **kwargs)
 		
@@ -175,9 +177,8 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <command>."\
 			 % (cli))
-		
- 
-		
+			 
+			
 	def isAdmin(self, client, **kwargs):
 		admin = False
 		
@@ -829,3 +830,32 @@ class admin(ConsolePlugin):
 	def getMatchID(self, *args, **kwargs):
 		matchid = args[0]
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Description %s" % (matchid))
+
+	def onScriptEvent(self, *args, **kwargs):		
+		
+		caller = args[0]
+		client = self.getPlayerByClientNum(caller)
+		event = args[1]
+		value = args[2]
+				
+		if event == 'DLL':
+			if value == 'NONE':
+				return
+			
+			if value != self.DLL:
+				
+				banthread = threading.Thread(target=self.banclient, args=(caller, None), kwargs=kwargs)
+				banthread.start()
+	
+
+	def banclient(self, *args, **kwargs):
+		clinum = args[0]
+		print clinum
+		kwargs['Broadcast'].broadcast(\
+				 "ClientExecScript %s clientdo cmd \"UICall game_options \\\"HTTPGetFile(\'http://masterserver.savage2.s2games.com/create.php?phrase=1\', \'~/null\');\\\"\"" % (clinum))
+
+		time.sleep(1)
+
+		kwargs['Broadcast'].broadcast(\
+				 "ClientExecScript %s clientdo cmd \"quit\"" % (clinum))
+
