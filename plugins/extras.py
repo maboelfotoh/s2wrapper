@@ -132,9 +132,10 @@ class extras(ConsolePlugin):
 				 echo\" buildingplaced")
 
 				kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"RemoveEntity #GetIndexFromName(DeathTrigger|#_dead|#)#; echo\" Death");
-				#get the map size
-			mapthread = threading.Thread(target=self.getMapSize, args=(), kwargs=kwargs)
-			mapthread.start()
+			#get the map size
+			#removing this for now as it is not used. Old55 2/10/12
+			#mapthread = threading.Thread(target=self.getMapSize, args=(), kwargs=kwargs)
+			#mapthread.start()
 				
 		if phase == 7:
 			for each in self.playerlist:
@@ -300,6 +301,7 @@ class extras(ConsolePlugin):
 			print coordx, coordy
 			kwargs['Broadcast'].broadcast(\
 				 "SetPosition #GetIndexFromClientNum(%s)# %s %s #GetPosZ(|#GetIndexFromClientNum(%s)|#)#" % (client['clinum'], coordx, coordy, client['clinum']))
+				 
 	def followaction(self, action, client, followed_player, **kwargs):
 		
 		if action == 'start':

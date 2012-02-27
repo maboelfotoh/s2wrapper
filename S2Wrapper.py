@@ -292,6 +292,8 @@ class ConsoleParser:
 			self.getNextDuel : re.compile ('^NEXTDUELROUND'),
 			self.waitForPlayer : re.compile ('.*MISSING: (\S+)'),
 			self.onDeath : re.compile('SGame: DUEL: (\d+) defeated (\d+)'),
+			self.duelStarted : re.compile('SGame: DUEL_STARTED (\d+) (\d+) (\d+) (\S+) (\S+)'),
+			self.duelEnded : re.compile('SGame: DUEL_ENDED (\d+) (\d+)'),
 			self.onFighterRemoved : re.compile('SGame: REMOVED PLAYER (\d+) TEAM (\d+)'),
 			self.getServerVar : re.compile('^SERVERVAR: (\S+) is (.*)'),
 			self.getHashCheck : re.compile('Sv: HACKCHECK ClientNumber: (\d+), AccountID: (\d+), Hashcheck result: (\S+)'),
@@ -394,6 +396,10 @@ class ConsoleParser:
 	def waitForPlayer(self, *args, **kwargs):
 		pass
 	def onDeath(self, *args, **kwargs):
+		pass
+	def duelStarted(self, *args, **kwargs):
+		pass
+	def duelEnded(self, *args, **kwargs):
 		pass
 	def onFighterRemoved(self, *args, **kwargs):
 		pass

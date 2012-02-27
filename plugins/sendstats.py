@@ -57,13 +57,7 @@ class sendstats(ConsolePlugin):
 						 
 			uploadthread = thread.start_new_thread(self.uploadstats, ())
 			#eventthread  = thread.start_new_thread(self.uploadevent, ())
-			if not self.sending:
-				replaythread = thread.start_new_thread(self.uploadreplay, ())
 			
-		
-
-			
-		
 		
 	def uploadstats(self):
 		print 'starting uploadstats'
@@ -101,7 +95,9 @@ class sendstats(ConsolePlugin):
 			except:
 				continue
 
-		#self.uploadreplay()
+		if not self.sending:
+		
+			self.uploadreplay()
 		
 	def uploadevent(self):
 

@@ -17,7 +17,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.4.0"
+	VERSION = "1.5.0"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -167,7 +167,7 @@ class admin(ConsolePlugin):
 
 		if self.isAdmin(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are registered as an administrator. Send the chat message: ^rhelp ^cto see what commands you can perform."\
+			"SendMessage %s ^cYou are registered as an administrator. Please use ^radmin rX <command>^y from now on."\
 			 % (cli))
 			client['admin'] = True
 
@@ -255,16 +255,17 @@ class admin(ConsolePlugin):
 			self.superCommand(message, **kwargs)
 		
 		#Matches for normal admins
-		restart = re.match("admin restart", message, flags=re.IGNORECASE)
-		shuffle = re.match("admin shuffle", message, flags=re.IGNORECASE)
-		kick = re.match("admin kick (\S+)", message, flags=re.IGNORECASE)
-		ban = re.match("admin ban (\S+)", message, flags=re.IGNORECASE)
-		slap = re.match("admin slap (\S+)", message, flags=re.IGNORECASE)
-		changeworld = re.match("admin changeworld (\S+)", message, flags=re.IGNORECASE)
+		restart = re.match("admin rX restart", message, flags=re.IGNORECASE)
+		shuffle = re.match("admin rX shuffle", message, flags=re.IGNORECASE)
+		kick = re.match("admin rX kick (\S+)", message, flags=re.IGNORECASE)
+		ban = re.match("admin rX ban (\S+)", message, flags=re.IGNORECASE)
+		slap = re.match("admin rX slap (\S+)", message, flags=re.IGNORECASE)
+		micoff = re.match("admin rX micoff (\S+)", message, flags=re.IGNORECASE)
+		changeworld = re.match("admin rX changeworld (\S+)", message, flags=re.IGNORECASE)
 		help = re.match("help", message, flags=re.IGNORECASE)
-		balance = re.match("admin balance", message, flags=re.IGNORECASE)
-		getbalance = re.match("admin get balance", message, flags=re.IGNORECASE)
-		reportbal = re.match("admin report balance", message, flags=re.IGNORECASE)
+		balance = re.match("admin rX balance", message, flags=re.IGNORECASE)
+		getbalance = re.match("admin rX get balance", message, flags=re.IGNORECASE)
+		reportbal = re.match("admin rX report balance", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -310,8 +311,12 @@ class admin(ConsolePlugin):
 				 SetPosition #_slapindex# [_sx + 200] [_sy + 200] #_sz#;\
 				 SendMessage %s ^cAn adminstrator has moved you for jumping on buildings. YOU WILL BE BANNED if this action persists"\
 				 % (slapclient['clinum'], slapclient['clinum']))
-			
-
+		
+		if micoff:
+			#Turns off players mic with clientdo	
+			offclient = self.getPlayerByName(micoff.group(1))
+			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (slapclient['clinum'], slapclient['clinum']))
+				 
 		if changeworld:
 			#change the map
 			kwargs['Broadcast'].broadcast(\
@@ -429,7 +434,7 @@ class admin(ConsolePlugin):
 
 	def superCommand(self, message, **kwargs):
 		#This allows superuser to issue any console command
-		supercommand = re.match("sudo (.*)", message, flags=re.IGNORECASE)
+		supercommand = re.match("sudo rY (.*)", message, flags=re.IGNORECASE)
 		
 		if supercommand:
 			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
