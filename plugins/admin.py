@@ -13,6 +13,7 @@ from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 from operator import itemgetter
 from numpy import median
+from random import choice
 import urllib2
 import subprocess
 
@@ -29,7 +30,7 @@ class admin(ConsolePlugin):
 	NEEDRELOAD = False
 	LASTMESSAGE = {'client' : None, 'firsttime' : 0, 'lasttime' : 0, 'repeat' : 0}
 	DLL = '2f4827b8'
-
+	PHRASE = 'xRa'
 	def onPluginLoad(self, config):
 		
 		self.ms = MasterServer ()
@@ -169,13 +170,13 @@ class admin(ConsolePlugin):
 
 		if self.isAdmin(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are registered as an administrator. Please use ^radmin rX <command>^y from now on."\
-			 % (cli))
+			"SendMessage %s ^cYou are registered as an administrator. Admin commands now require a passphrase. Use ^radmin <phrase> <command>^y.^c The phrase for this game is ^y%s.^c You can always get the passphrase with the help command"\
+			 % (cli, self.PHRASE))
 			client['admin'] = True
 
 		if self.isSuperuser(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <command>."\
+			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <phrase> command>."\
 			 % (cli))
 			 
 			
@@ -256,17 +257,17 @@ class admin(ConsolePlugin):
 			self.superCommand(message, **kwargs)
 		
 		#Matches for normal admins
-		restart = re.match("admin rX restart", message, flags=re.IGNORECASE)
-		shuffle = re.match("admin rX shuffle", message, flags=re.IGNORECASE)
-		kick = re.match("admin rX kick (\S+)", message, flags=re.IGNORECASE)
-		ban = re.match("admin rX ban (\S+)", message, flags=re.IGNORECASE)
-		slap = re.match("admin rX slap (\S+)", message, flags=re.IGNORECASE)
-		micoff = re.match("admin rX micoff (\S+)", message, flags=re.IGNORECASE)
-		changeworld = re.match("admin rX changeworld (\S+)", message, flags=re.IGNORECASE)
+		restart = re.match("admin "+self.PHRASE+" restart", message, flags=re.IGNORECASE)
+		shuffle = re.match("admin "+self.PHRASE+" shuffle", message, flags=re.IGNORECASE)
+		kick = re.match("admin "+self.PHRASE+" kick (\S+)", message, flags=re.IGNORECASE)
+		ban = re.match("admin "+self.PHRASE+" ban (\S+)", message, flags=re.IGNORECASE)
+		slap = re.match("admin "+self.PHRASE+" slap (\S+)", message, flags=re.IGNORECASE)
+		micoff = re.match("admin "+self.PHRASE+" micoff (\S+)", message, flags=re.IGNORECASE)
+		changeworld = re.match("admin "+self.PHRASE+" changeworld (\S+)", message, flags=re.IGNORECASE)
 		help = re.match("help", message, flags=re.IGNORECASE)
-		balance = re.match("admin rX balance", message, flags=re.IGNORECASE)
-		getbalance = re.match("admin rX get balance", message, flags=re.IGNORECASE)
-		reportbal = re.match("admin rX report balance", message, flags=re.IGNORECASE)
+		balance = re.match("admin "+self.PHRASE+" balance", message, flags=re.IGNORECASE)
+		getbalance = re.match("admin "+self.PHRASE+" get balance", message, flags=re.IGNORECASE)
+		reportbal = re.match("admin "+self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -318,11 +319,11 @@ class admin(ConsolePlugin):
 			offclient = self.getPlayerByName(micoff.group(1))
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (slapclient['clinum'], slapclient['clinum']))
 				 
-		if changeworld:
+		#if changeworld:
 			#change the map
-			kwargs['Broadcast'].broadcast(\
-				"changeworld %s"\
-				 % (changeworld.group(1)))
+		#	kwargs['Broadcast'].broadcast(\
+		#		"changeworld %s"\
+		#		 % (changeworld.group(2)))
 
 		
 		if balance:
@@ -356,32 +357,35 @@ class admin(ConsolePlugin):
 				"SendMessage %s All commands on the server are done through server chat. All commands are logged to prevent you from abusing them.The following are commands and a short description of what they do."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin restart ^whard reset of the server. ONLY use in weird cases."\
+				"SendMessage %s ^radmin <phrase> restart ^whard reset of the server. ONLY use in weird cases."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin shuffle ^wwill shuffle the game and set to previous phase."\
+				"SendMessage %s ^radmin <phrase> shuffle ^wwill shuffle the game and set to previous phase."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmi kick playername ^wwill remove a player from the server."\
+				"SendMessage %s ^radmin <phrase> kick playername ^wwill remove a player from the server."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
+				"SendMessage %s ^radmin <phrase> playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin slap playername ^wwill move the player. Use to get them off of structures if they are exploiting."\
+				"SendMessage %s ^radmin <phrase> micoff playername ^wwill turn the players mic off. Use on mic spammers."\
+				 % (client['clinum']))
+			#kwargs['Broadcast'].broadcast(\
+			#	"SendMessage %s ^radmin <phrase> changeworld mapname ^wwill change the map to the desired map."\
+			#	 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin <phrase> balance ^wwill move two players to achieve balance."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin changeworld mapname ^wwill change the map to the desired map."\
+				"SendMessage %s ^radmin <phrase> get balance ^wwill report avg. and median SF values for the teams as well as a stack value."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin balance ^wwill move two players to achieve balance."\
+				"SendMessage %s ^radmin <phrase> report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin get balance ^wwill report avg. and median SF values for the teams as well as a stack value."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
-				 % (client['clinum']))
+				"SendMessage %s ^rThe passphrase for this game is: ^y%s"\
+				 % (client['clinum'], self.PHRASE))
 
 	def getBalance(self, *args, **kwargs):
 		clinum = args[0]
@@ -435,7 +439,7 @@ class admin(ConsolePlugin):
 
 	def superCommand(self, message, **kwargs):
 		#This allows superuser to issue any console command
-		supercommand = re.match("sudo rY (.*)", message, flags=re.IGNORECASE)
+		supercommand = re.match("sudo "+self.PHRASE+" (.*)", message, flags=re.IGNORECASE)
 		
 		if supercommand:
 			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
@@ -453,6 +457,9 @@ class admin(ConsolePlugin):
 				each['value'] = 0
 					
 		if (phase == 6):
+			self.makepass()
+			print self.PHRASE
+			
 			if self.UPDATE:
 			#fetch admin list and reload at the start of each game
 				updatethread = threading.Thread(target=self.update, args=(), kwargs=kwargs)
@@ -858,4 +865,10 @@ class admin(ConsolePlugin):
 
 		kwargs['Broadcast'].broadcast(\
 				 "ClientExecScript %s clientdo cmd \"quit\"" % (clinum))
-
+	
+	def makepass (self):
+		chars = '23456789abcdefghjkmnopqrstuvwxyzABCDEFHJKLMNPQRSTUVWXYZ'
+		newpasswd = ''
+   		for i in range(3):
+        		newpasswd = newpasswd + choice(chars)
+		self.PHRASE = newpasswd

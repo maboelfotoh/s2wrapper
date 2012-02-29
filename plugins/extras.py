@@ -18,7 +18,7 @@ from S2Wrapper import Savage2DaemonHandler
 
 
 class extras(ConsolePlugin):
-	VERSION = "1.2.0"
+	VERSION = "1.2.2"
 	ms = None
 	CHAT_INTERVAL = 10
 	CHAT_STAMP = 0
@@ -40,7 +40,7 @@ class extras(ConsolePlugin):
 	
 	def RegisterScripts(self, **kwargs):
 		
-		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
+
 		#Setup everything for following
 		self.followlist = []
 		followers = 1
@@ -92,10 +92,15 @@ class extras(ConsolePlugin):
 
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
-		self.RegisterScripts(**kwargs)
+		
+		if phase == 5:
+
+			self.RegisterScripts(**kwargs)
 		
 		if phase == 6:
 			
+			self.RegisterScripts(**kwargs)
+
 			#remove stuck for players
 			for each in self.playerlist:
 				each['stuck'] = False
@@ -287,20 +292,20 @@ class extras(ConsolePlugin):
 					self.followaction(action, client, followed_player, **kwargs)
 					return
 
-		if event == 'SetMapPosition':
+		#if event == 'SetMapPosition':
 			
-			if client['team'] != 0:
-				return
+		#	if client['team'] != 0:
+		#		return
 			
-			maxcoord = ((self.MAPSIZE - 1) * 64 * 64)
-			print maxcoord
-			location = re.match("(0\.\d+)_(0.\d+)", value)
-			print location.group(1), location.group(2)
-			coordx = float(location.group(1))*maxcoord
-			coordy = float(location.group(2))*maxcoord
-			print coordx, coordy
-			kwargs['Broadcast'].broadcast(\
-				 "SetPosition #GetIndexFromClientNum(%s)# %s %s #GetPosZ(|#GetIndexFromClientNum(%s)|#)#" % (client['clinum'], coordx, coordy, client['clinum']))
+		#	maxcoord = ((self.MAPSIZE - 1) * 64 * 64)
+		#	print maxcoord
+		#	location = re.match("(0\.\d+)_(0.\d+)", value)
+		#	print location.group(1), location.group(2)
+		#	coordx = float(location.group(1))*maxcoord
+		#	coordy = float(location.group(2))*maxcoord
+		#	print coordx, coordy
+		#	kwargs['Broadcast'].broadcast(\
+		#		 "SetPosition #GetIndexFromClientNum(%s)# %s %s #GetPosZ(|#GetIndexFromClientNum(%s)|#)#" % (client['clinum'], coordx, coordy, client['clinum']))
 				 
 	def followaction(self, action, client, followed_player, **kwargs):
 		
