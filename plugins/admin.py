@@ -84,7 +84,7 @@ class admin(ConsolePlugin):
 		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Name \"S2WRAPPER\"")
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
-		
+		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set kid #GetScriptParam(clientid)#; set kcheck _karmaflag#kid#; if [kcheck > 0] clientexecscript clientdo #kid# cmd \\\"set voice_disabled true\\\"; echo\" spawn")
 	def getPlayerByClientNum(self, cli):
 
 		for client in self.playerlist:
@@ -129,6 +129,7 @@ class admin(ConsolePlugin):
 					 'level' : 0,\
 					 'admin' : False,\
 					 'value' : 0,\
+					 'karma' : 0,\
 					 'commander' : False})
 	
 	def onDisconnect(self, *args, **kwargs):
@@ -149,12 +150,19 @@ class admin(ConsolePlugin):
 		stats = self.ms.getStatistics (client['acctid']).get ('all_stats').get (client['acctid'])
 		level = int(stats['level'])
 		sf = int(stats['sf'])
+		karma = int(stats['karma'])
 					
 		client['sf'] = sf
 		client['level'] = level
+		client['karma'] = karma
 		client['active'] = True
 		kwargs['Broadcast'].broadcast(\
  		"clientexecscript %s clientdo cmd \"set _vr #StringLength(|#GetCheckSum(cgame.dll)|#)#; if [_vr > 0] \\\"SendScriptInput what DLL value #getchecksum(cgame.dll)#\\\"; Else \\\"SendScriptInput what DLL value NONE\\\"\"" % (client['clinum']))
+ 		
+ 		if karma < 0:
+ 			kwargs['Broadcast'].broadcast(\
+ 			"set _karmaflag%s 1" % (client['clinum']))
+ 			
 		#If client has disconnected, give them their gold back
 		self.giveGold(False, client, **kwargs)
 		
@@ -317,7 +325,7 @@ class admin(ConsolePlugin):
 		if micoff:
 			#Turns off players mic with clientdo	
 			offclient = self.getPlayerByName(micoff.group(1))
-			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (slapclient['clinum'], slapclient['clinum']))
+			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum'], offclient['clinum']))
 				 
 		#if changeworld:
 			#change the map
