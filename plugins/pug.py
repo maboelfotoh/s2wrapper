@@ -122,6 +122,7 @@ class pug(ConsolePlugin):
 		client ['clan'] = clan
 		client ['newteam'] = 0
 		
+		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"showwidget pug_button\"" % (cli))
 		
 	def onTeamChange (self, *args, **kwargs):
 
@@ -159,7 +160,7 @@ class pug(ConsolePlugin):
 		if phase == 7:
 			for each in self.playerlist:
 				each['newteam'] = 0
-	
+		
 	def onMessage(self, *args, **kwargs):
 		
 		name = args[1]
@@ -253,6 +254,8 @@ class pug(ConsolePlugin):
 		#Ready
 		if event == 'Ready':
 			#TODO:only make the button do something if the minimum number of players are reached
+			if self.PHASE != 3:
+				kwargs['Broadcast'].broadcast("SendMessage %s You cannot be ready until minimum number of players per side is reached" % (caller))
 			if self.STARTED:
 				return
 			if caller == info['h_captain']:
