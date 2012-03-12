@@ -256,6 +256,7 @@ class pug(ConsolePlugin):
 			#TODO:only make the button do something if the minimum number of players are reached
 			if self.PHASE != 3:
 				kwargs['Broadcast'].broadcast("SendMessage %s You cannot be ready until minimum number of players per side is reached" % (caller))
+				return
 			if self.STARTED:
 				return
 			if caller == info['h_captain']:

@@ -325,7 +325,7 @@ class admin(ConsolePlugin):
 		if micoff:
 			#Turns off players mic with clientdo	
 			offclient = self.getPlayerByName(micoff.group(1))
-			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum'], offclient['clinum']))
+			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum']))
 				 
 		#if changeworld:
 			#change the map
@@ -602,7 +602,7 @@ class admin(ConsolePlugin):
 		kwargs['Broadcast'].broadcast(\
 			"SendMessage %s You have shuffled the game." % (clinum))
 		#Run balancer to get it nice and even
-		self.onBalance(clinum, **kwargs)
+		#self.onBalance(clinum, **kwargs)
 		kwargs['Broadcast'].broadcast("Startgame")
 		
 	def onBalance(self, *args, **kwargs):

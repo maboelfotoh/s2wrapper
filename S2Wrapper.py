@@ -51,6 +51,7 @@ class Savage2Thread(threading.Thread):
 		self.config = config
 		
 	def run(self):
+
 		self.launchDaemon ()
 
 	def launchDaemon (self):
@@ -84,6 +85,7 @@ class Savage2Thread(threading.Thread):
 
 		if not self.process:
 			return
+
 		self.pingAlive()
 		self.checkAlive()
 		self.read ()
@@ -159,7 +161,7 @@ class Savage2Thread(threading.Thread):
 			return
 
 		
-		r = threading.Timer(60.0, self.checkAlive)
+		r = threading.Timer(130.0, self.checkAlive)
 		r.start()
 
 		self.alive = False
@@ -169,7 +171,7 @@ class Savage2Thread(threading.Thread):
 				
 		Savage2SocketHandler.broadcast("echo ALIVE")
 		
-		r = threading.Timer(30.0, self.pingAlive)
+		r = threading.Timer(120.0, self.pingAlive)
 		r.start()
 		
 class Savage2ConsoleHandler:
