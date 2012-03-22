@@ -190,7 +190,7 @@ class pug(ConsolePlugin):
 			client['play'] = playing
 			if not client['play']:
 				color = '^r' 
-		kwargs['Broadcast'].broadcast("SendMessage %s ^cYour Playing Status: %s%s" % (client['clinum'], color, client['play']))
+		#kwargs['Broadcast'].broadcast("SendMessage %s ^cYour Playing Status: %s%s" % (client['clinum'], color, client['play']))
 	
 	
 	def onScriptEvent(self, *args, **kwargs):		
@@ -205,16 +205,18 @@ class pug(ConsolePlugin):
 		if event == 'Captain':
 			if caller == info['b_captain'] or caller == info['h_captain']:
 				return
+
 			if value == 'beasts':
 				info['b_captain'] = caller
-				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; SendMessage -1 ^r%s^w is Captain of the Beasts!" % (client['name']))
+				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; set Pet_HumanWorker_Inventory9 \"%s\"" % (client['name']))
 				if not info['h_captain']:
 					info['h_first'] = True
 				else:
 					self.beginpicking(**kwargs)
+
 			if value == 'humans':
 				info['h_captain'] = caller
-				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\";  SendMessage -1 ^r%s^w is Captain of the Humans!" % (client['name']))
+				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\";  set Pet_BeastWorker_Inventory9 \"%s\"" % (client['name']))
 				if not info['b_captain']:
 					info['b_first'] = True
 				else:
