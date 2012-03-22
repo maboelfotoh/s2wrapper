@@ -75,7 +75,7 @@ class pug(ConsolePlugin):
 					 'ping' : 0,\
 					 'clan' : 'X'})
 
-		kwargs['Broadcast'].broadcast("SendMessage %s ^cTo toggle your PUG availability send the chat message ^rpug noplay" % (id))
+		#kwargs['Broadcast'].broadcast("SendMessage %s ^cTo toggle your PUG availability send the chat message ^rpug noplay" % (id))
 		
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -86,11 +86,12 @@ class pug(ConsolePlugin):
 		if client['clinum'] == self.startinfo['h_captain']:
 			self.startinfo['h_captain'] = None
 			self.startinfo['h_ready'] = False
-			kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"")
+			kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"; set Pet_HumanWorker_Inventory9 \"\";")
+
 		if client['clinum'] == self.startinfo['b_captain']:
 			self.startinfo['b_captain'] = None
 			self.startinfo['b_ready'] = False
-			kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"")
+			kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
 			
 	def onSetName(self, *args, **kwargs):
 
@@ -99,6 +100,7 @@ class pug(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername					
 		client ['play'] = True
+		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"showwidget pug_button\"" % (cli))
 
 	def onAccountId(self, *args, **kwargs):
 
@@ -111,7 +113,7 @@ class pug(ConsolePlugin):
 		exp = int(stats['exp'])
 		time = int(stats['secs'])
 		time = time/60
-		sf = int(exp/time)
+		#sf = int(exp/time)
 		clan = stats['clan_tag']
 		client = self.getPlayerByClientNum(cli)
 		
@@ -123,6 +125,7 @@ class pug(ConsolePlugin):
 		client ['newteam'] = 0
 		
 		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"showwidget pug_button\"" % (cli))
+
 		if self.PICKING:
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"" % (cli))
 	def onTeamChange (self, *args, **kwargs):
@@ -210,7 +213,7 @@ class pug(ConsolePlugin):
 
 			if value == 'beasts':
 				info['b_captain'] = caller
-				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; set Pet_HumanWorker_Inventory9 \"%s\"" % (client['name']))
+				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; set Pet_BeastWorker_Inventory9 \"%s\"" % (client['name']))
 				if not info['h_captain']:
 					info['h_first'] = True
 				else:
@@ -218,7 +221,7 @@ class pug(ConsolePlugin):
 
 			if value == 'humans':
 				info['h_captain'] = caller
-				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\";  set Pet_BeastWorker_Inventory9 \"%s\"" % (client['name']))
+				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\"; set Pet_HumanWorker_Inventory9  \"%s\"" % (client['name']))
 				if not info['b_captain']:
 					info['b_first'] = True
 				else:
