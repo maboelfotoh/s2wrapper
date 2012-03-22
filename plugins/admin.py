@@ -664,9 +664,8 @@ class admin(ConsolePlugin):
 
 		#If the stack isn't improved, abort it
 		if (lowest >= startstack):
-			print 'unproductive balance. terminate'
 			kwargs['Broadcast'].broadcast(\
-				"echo unproductive balance")
+				"SendMessage %s ^yUnproductive balance. No swapping scenario would improve the balance over its current state." % (args[0]))
 			return
 		#Do the switch
 		kwargs['Broadcast'].broadcast(\

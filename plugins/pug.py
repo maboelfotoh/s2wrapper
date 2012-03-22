@@ -123,7 +123,8 @@ class pug(ConsolePlugin):
 		client ['newteam'] = 0
 		
 		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"showwidget pug_button\"" % (cli))
-		
+		if self.PICKING:
+			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"" % (cli))
 	def onTeamChange (self, *args, **kwargs):
 
 		team = int(args[1])
@@ -143,8 +144,7 @@ class pug(ConsolePlugin):
 			self.STARTSTAMP = args[1]
 			self.STARTED = True
 		if phase == 6:
-			self.PICKING = False
-			self.STARTED = False
+
 			self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
 			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description -1;\
 							set State_Interrupted_EffectPath \"trigger UpdateDetail 1\";\
@@ -153,14 +153,16 @@ class pug(ConsolePlugin):
 							set Gadget_Hail_Description \"trigger UpdatePercent -1\";\
 							set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 1\";\
 							set maxteams 3;\
-							set Pet_Shaman_Prerequisite 1;\
-							set sv_setupTimeCommander 600000000;\
-							Set sv_maxteamdifference 30;")
+							set Pet_Shaman_Prerequisite 1;")
 			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
+
 		if phase == 7:
 			for each in self.playerlist:
 				each['newteam'] = 0
-		
+			self.PICKING = False
+			self.STARTED = False
+			kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"showwidget team_button0; showwidget team_button1\"")
+
 	def onMessage(self, *args, **kwargs):
 		
 		name = args[1]
@@ -231,16 +233,22 @@ class pug(ConsolePlugin):
 		#Player select
 		if event == 'Select':
 			player = self.getPlayerByName(value)
-			
+			#switch everything to ingame_picking function if the game is already started
+			if self.PHASE == 5:
+				#self.ingame_picking(caller, client, player, **kwargs)
+				print 'Will go to ingame picking'
 			if caller == info['h_captain']:
+				#check players status
 				if not player['play']:
 					kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
 					return
+			
 				player['newteam'] = 1
 				client['newteam'] = 1
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
+
 				
 			if caller == info['b_captain']:
 				if not player['play']:
@@ -254,8 +262,8 @@ class pug(ConsolePlugin):
 		#Ready
 		if event == 'Ready':
 			#TODO:only make the button do something if the minimum number of players are reached
-			if self.PHASE != 3:
-				kwargs['Broadcast'].broadcast("SendMessage %s You cannot be ready until minimum number of players per side is reached" % (caller))
+			#if self.PHASE != 2:
+			#	kwargs['Broadcast'].broadcast("SendMessage %s You cannot be ready until minimum number of players per side is reached" % (caller))
 				return
 			if self.STARTED:
 				return
@@ -269,11 +277,22 @@ class pug(ConsolePlugin):
 			if info['h_ready'] and info['b_ready']:
 				kwargs['Broadcast'].broadcast("set State_ImpPoisoned_Name \"trigger UpdateSpeed 0\"")
 				self.populate(**kwargs)
-				
+		
+		if event == 'Resign':
+			if client['clinum'] == self.startinfo['h_captain']:
+				self.startinfo['h_captain'] = None
+				self.startinfo['h_ready'] = False
+				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"")
+			if client['clinum'] == self.startinfo['b_captain']:
+				self.startinfo['b_captain'] = None
+				self.startinfo['b_ready'] = False
+				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"")
+									
 	def beginpicking(self, **kwargs):
 		self.PICKING = True
 		#start by making the teams unjoinable: doesn't seem to work
-		kwargs['Broadcast'].broadcast("set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
+		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
+		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
 		#move everyone to spectator, but move captains to the appropriate team
 		for each in self.playerlist:
 			if each['active']:
@@ -310,3 +329,28 @@ class pug(ConsolePlugin):
 			self.onConnect(clinum, 0000, ip, 0000, **kwargs)
 			self.onSetName(clinum, name, **kwargs)
 			self.onAccountId(clinum, acctid, **kwargs)
+
+	def ingame_picking(self, *args, **kwargs):
+
+		if caller == info['h_captain']:
+			#check players status
+			if not player['play']:
+				kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
+				return
+		
+			player['newteam'] = 1
+			client['newteam'] = 1
+			kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
+			kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
+
+				
+		if caller == info['b_captain']:
+			if not player['play']:
+				kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['name']))
+				return
+			player['newteam'] = 2
+			client['newteam'] = 2
+			kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
+			kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['h_captain'],info['h_captain'] ))
