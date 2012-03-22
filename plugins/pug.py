@@ -128,6 +128,7 @@ class pug(ConsolePlugin):
 
 		if self.PICKING:
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"" % (cli))
+
 	def onTeamChange (self, *args, **kwargs):
 
 		team = int(args[1])
@@ -160,6 +161,7 @@ class pug(ConsolePlugin):
 							set Pet_HumanWorker_Inventory9 \"\";\
 							set Pet_BeastWorker_Inventory9 \"\";")
 			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
+			kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"showwidget team_button0; showwidget team_button1\"")
 
 		if phase == 7:
 			for each in self.playerlist:
