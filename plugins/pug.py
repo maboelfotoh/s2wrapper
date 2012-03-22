@@ -153,7 +153,9 @@ class pug(ConsolePlugin):
 							set Gadget_Hail_Description \"trigger UpdatePercent -1\";\
 							set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 1\";\
 							set maxteams 3;\
-							set Pet_Shaman_Prerequisite 1;")
+							set Pet_Shaman_Prerequisite 1;\
+							set Pet_HumanWorker_Inventory9 \"\";\
+							set Pet_BeastWorker_Inventory9 \"\";")
 			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
 
 		if phase == 7:
