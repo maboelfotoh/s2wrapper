@@ -3,6 +3,7 @@
 import re
 import math
 import time
+import threading
 import ConfigParser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
@@ -10,12 +11,13 @@ from S2Wrapper import Savage2DaemonHandler
 
 
 class pug(ConsolePlugin):
-	VERSION = "0.0.1"
+	VERSION = "1.0.1"
 	ms = None
 	PHASE = 0
 	STARTSTAMP = 0
 	STARTED = False
 	PICKING = False
+	HUMANPICK = False
 	playerlist = []
 	startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
 	TIME = 0
@@ -147,6 +149,7 @@ class pug(ConsolePlugin):
 		if phase == 5:
 			self.STARTSTAMP = args[1]
 			self.STARTED = True
+			
 		if phase == 6:
 
 			self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
@@ -157,6 +160,7 @@ class pug(ConsolePlugin):
 							set Gadget_Hail_Description \"trigger UpdatePercent -1\";\
 							set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 1\";\
 							set maxteams 3;\
+							set sv_maxteamdifference 10;\
 							set Pet_Shaman_Prerequisite 1;\
 							set Pet_HumanWorker_Inventory9 \"\";\
 							set Pet_BeastWorker_Inventory9 \"\";")
@@ -170,17 +174,6 @@ class pug(ConsolePlugin):
 			self.STARTED = False
 			kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"showwidget team_button0; showwidget team_button1\"")
 
-	def onMessage(self, *args, **kwargs):
-		
-		name = args[1]
-		message = args[2]
-		
-		client = self.getPlayerByName(name)
-		
-		noplay = re.match("pug noplay", message, flags=re.IGNORECASE)
-		
-		if noplay:
-			self.togglePlay(client, **kwargs)
 	
 	def togglePlay(self, client, playing=None, **kwargs):
 		color = '^g'
@@ -208,29 +201,31 @@ class pug(ConsolePlugin):
 		value = args[2]
 		info = self.startinfo
 		
-		#Captain select
+		#Captain initiated
 		if event == 'Captain':
+			#If they are already captain, do nothing
 			if caller == info['b_captain'] or caller == info['h_captain']:
 				return
-
+			#Beasts, set captain
 			if value == 'beasts':
 				info['b_captain'] = caller
 				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; set Pet_BeastWorker_Inventory9 \"%s\"" % (client['name']))
 				if not info['h_captain']:
 					info['h_first'] = True
-				else:
-					self.beginpicking(**kwargs)
-
+			#Humans, set captain
 			if value == 'humans':
 				info['h_captain'] = caller
 				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\"; set Pet_HumanWorker_Inventory9  \"%s\"" % (client['name']))
 				if not info['b_captain']:
 					info['b_first'] = True
-				else:
-		
-					self.beginpicking(**kwargs)
-			print info
-			
+			#Check if picking is initiated, if so determine who gets the next picking
+			if self.PICKING:
+				self.setpicking(**kwargs)
+				return			
+			#Start picking process through the normal mechanism
+			if info['h_captain'] and info['b_captain']:
+				self.beginpicking(**kwargs)
+
 		#Toggle player availability
 		if event == 'Toggle':
 			playing = False
@@ -244,6 +239,8 @@ class pug(ConsolePlugin):
 			player = self.getPlayerByName(value)
 			#switch everything to ingame_picking function if the game is already started
 			if self.PHASE == 5:
+				#pickthread = threading.Thread(target=self.ingame_picking, args=(caller, client, player, None), kwargs=kwargs)
+				#pickthread.start()
 				#self.ingame_picking(caller, client, player, **kwargs)
 				print 'Will go to ingame picking'
 			if caller == info['h_captain']:
@@ -257,17 +254,18 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
-
+				self.HUMANPICK = not self.HUMANPICK
 				
 			if caller == info['b_captain']:
 				if not player['play']:
-					kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['name']))
+					kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
 					return
 				player['newteam'] = 2
 				client['newteam'] = 2
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['h_captain'],info['h_captain'] ))
+				self.HUMANPICK = not self.HUMANPICK
 		#Ready
 		if event == 'Ready':
 			#TODO:only make the button do something if the minimum number of players are reached
@@ -277,9 +275,13 @@ class pug(ConsolePlugin):
 			if self.STARTED:
 				return
 			if caller == info['h_captain']:
+				if info['h_ready']:
+					return
 				info['h_ready'] = True
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has indicated that Humans are ready!" % (client['name']))
 			if caller == info['b_captain']:
+				if info['b_ready']:
+					return
 				info['b_ready'] = True
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has indicated that Beasts are ready!" % (client['name']))
 			#Start the game if both captains say they are ready
@@ -291,17 +293,19 @@ class pug(ConsolePlugin):
 			if client['clinum'] == self.startinfo['h_captain']:
 				self.startinfo['h_captain'] = None
 				self.startinfo['h_ready'] = False
-				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"")
+				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"; set Pet_HumanWorker_Inventory9 \"\";")
 			if client['clinum'] == self.startinfo['b_captain']:
 				self.startinfo['b_captain'] = None
 				self.startinfo['b_ready'] = False
-				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"")
+				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
 									
 	def beginpicking(self, **kwargs):
 		self.PICKING = True
-		#start by making the teams unjoinable: doesn't seem to work
+		
+		#start by making the teams unjoinable
 		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
 		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
+
 		#move everyone to spectator, but move captains to the appropriate team
 		for each in self.playerlist:
 			if each['active']:
@@ -310,12 +314,15 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (each['clinum']))
 			if each['clinum'] == self.startinfo['b_captain']:
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (each['clinum']))
+
 		#Set variables to get the first captain to start picking
 		if self.startinfo['h_first']:
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'], self.startinfo['h_captain']))
+			self.HUMANPICK = True
+			self.setpicking(**kwargs)
 		else:
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['b_captain'], self.startinfo['b_captain']))
-
+			self.HUMANPICK = False
+			self.setpicking(**kwargs)
+			
 	def populate(self, **kwargs):
 	
 		for each in self.playerlist:
@@ -339,27 +346,78 @@ class pug(ConsolePlugin):
 			self.onSetName(clinum, name, **kwargs)
 			self.onAccountId(clinum, acctid, **kwargs)
 
+	def onServerStatus(self, *args, **kwargs):
+		if self.STARTED != 1:
+			return
+		pickthread = threading.Thread(target=self.ingame_picking, args=(None), kwargs=kwargs)
+		pickthread.start()
+
 	def ingame_picking(self, *args, **kwargs):
-
-		if caller == info['h_captain']:
-			#check players status
-			if not player['play']:
-				kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
-				return
 		
-			player['newteam'] = 1
-			client['newteam'] = 1
-			kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
-			kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
-
+		self.listClients(self, **kwargs)
+		teamone = []
+		teamtwo = []		
+		time.sleep(1)
+		
+		#populate current team lists:
+		for each in self.playerlist:
+			if not each['active']:
+				continue
+			if each['team'] == 1:
+				teamone.append(each)
+			if each['team'] == 2:
+				teamtwo.append(each)
 				
-		if caller == info['b_captain']:
-			if not player['play']:
-				kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['name']))
-				return
-			player['newteam'] = 2
-			client['newteam'] = 2
-			kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
-			kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
+		#figure out who gets the pick
+		team1 = len(teamone)
+		team2 = len(teamtwo)
+		
+		if team1 == team2:
+			continue
+		
+		if team1 > team2:
+			self.HUMANPICK = False
+			self.setpicking(**kwargs)
+		if team2 > team1:
+			self.HUMANPICK = True
+			self.setpicking(**kwargs)
+			
+	def listClients(self, *args, **kwargs):
+
+		kwargs['Broadcast'].broadcast("listclients")
+
+	def onListClients(self, *args, **kwargs):
+		clinum = args[0]
+		name = args[2]
+		ip = args[1]
+		
+
+		client = self.getPlayerByName(name)
+		if not client:
+		#if a player is missing from the list this will put them as an active player and get stats
+		#TODO: listclients clinum is always double diget (00, 01, etc.) so this might be a problem
+			acct = self.ms.getAccount(name)
+			acctid = acct[name]
+			self.onConnect(clinum, 0000, ip, 0000, **kwargs)
+			self.onSetName(clinum, name, **kwargs)
+			self.onAccountId(clinum, acctid, **kwargs)
+			client = self.getPlayerByName(name)
+			
+		client['active'] = True
+		kwargs['Broadcast'].broadcast(\
+		"echo CLIENT %s is on TEAM #GetTeam(|#GetIndexFromClientNum(%s)|#)#"\
+		 % (client['clinum'], client['clinum']))
+		 
+	def onRefreshTeams(self, *args, **kwargs):
+		clinum = args[0]
+		team = int(args[1])
+		client = self.getPlayerByClientNum(clinum)
+		client['team'] = team
+
+
+	def setpicking(self, **kwargs):
+
+		if self.HUMANPICK:
 			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['h_captain'],info['h_captain'] ))
+		else:
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))

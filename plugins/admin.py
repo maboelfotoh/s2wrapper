@@ -105,6 +105,10 @@ class admin(ConsolePlugin):
 		for each in self.ipban:
 			if each == ip:
 				reason = "You are banned from this server."
+				kwargs['Broadcast'].broadcast(\
+ 		"clientexecscript %s clientdo cmd \"SetSave host_onload true; SetSave host_created 1; WriteConfigScript ~/startup.cfg\"" % (id))
+ 				kwargs['Broadcast'].broadcast(\
+ 		"clientexecscript %s clientdo cmd \"quit\"" % (id))
 				kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (id, reason))
 				return
 
