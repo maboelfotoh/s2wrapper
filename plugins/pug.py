@@ -199,31 +199,31 @@ class pug(ConsolePlugin):
 		client = self.getPlayerByClientNum(caller)
 		event = args[1]
 		value = args[2]
-		info = self.startinfo
+		#info = self.startinfo
 		
 		#Captain initiated
 		if event == 'Captain':
 			#If they are already captain, do nothing
-			if caller == info['b_captain'] or caller == info['h_captain']:
+			if caller == self.startinfo['b_captain'] or caller == self.startinfo['h_captain']:
 				return
 			#Beasts, set captain
 			if value == 'beasts':
-				info['b_captain'] = caller
+				self.startinfo['b_captain'] = caller
 				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 0\"; set Pet_BeastWorker_Inventory9 \"%s\"" % (client['name']))
-				if not info['h_captain']:
-					info['h_first'] = True
+				if not self.startinfo['h_captain']:
+					self.startinfo['h_first'] = True
 			#Humans, set captain
 			if value == 'humans':
-				info['h_captain'] = caller
+				self.startinfo['h_captain'] = caller
 				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 0\"; set Pet_HumanWorker_Inventory9  \"%s\"" % (client['name']))
-				if not info['b_captain']:
-					info['b_first'] = True
+				if not self.startinfo['b_captain']:
+					self.startinfo['b_first'] = True
 			#Check if picking is initiated, if so determine who gets the next picking
 			if self.PICKING:
 				self.setpicking(**kwargs)
 				return			
 			#Start picking process through the normal mechanism
-			if info['h_captain'] and info['b_captain']:
+			if self.startinfo['h_captain'] and self.startinfo['b_captain']:
 				self.beginpicking(**kwargs)
 
 		#Toggle player availability
@@ -243,7 +243,7 @@ class pug(ConsolePlugin):
 				#pickthread.start()
 				#self.ingame_picking(caller, client, player, **kwargs)
 				print 'Will go to ingame picking'
-			if caller == info['h_captain']:
+			if caller == self.startinfo['h_captain']:
 				#check players status
 				if not player['play']:
 					kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
@@ -253,10 +253,10 @@ class pug(ConsolePlugin):
 				client['newteam'] = 1
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
-				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
+				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['b_captain'], self.startinfo['b_captain']))
 				self.HUMANPICK = not self.HUMANPICK
 				
-			if caller == info['b_captain']:
+			if caller == self.startinfo['b_captain']:
 				if not player['play']:
 					kwargs['Broadcast'].broadcast("SendMessage %s ^rThat player has requested to not play in this match." % (client['clinum']))
 					return
@@ -264,7 +264,7 @@ class pug(ConsolePlugin):
 				client['newteam'] = 2
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
-				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['h_captain'],info['h_captain'] ))
+				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],info['h_captain'] ))
 				self.HUMANPICK = not self.HUMANPICK
 		#Ready
 		if event == 'Ready':
@@ -274,18 +274,18 @@ class pug(ConsolePlugin):
 			#	return
 			if self.STARTED:
 				return
-			if caller == info['h_captain']:
-				if info['h_ready']:
+			if caller == self.startinfo['h_captain']:
+				if self.startinfo['h_ready']:
 					return
-				info['h_ready'] = True
+				self.startinfo['h_ready'] = True
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has indicated that Humans are ready!" % (client['name']))
-			if caller == info['b_captain']:
-				if info['b_ready']:
+			if caller == self.startinfo['b_captain']:
+				if self.startinfo['b_ready']:
 					return
-				info['b_ready'] = True
+				self.startinfo['b_ready'] = True
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has indicated that Beasts are ready!" % (client['name']))
 			#Start the game if both captains say they are ready
-			if info['h_ready'] and info['b_ready']:
+			if self.startinfo['h_ready'] and self.startinfo['b_ready']:
 				kwargs['Broadcast'].broadcast("set State_ImpPoisoned_Name \"trigger UpdateSpeed 0\"")
 				self.populate(**kwargs)
 		
@@ -422,4 +422,4 @@ class pug(ConsolePlugin):
 		if self.HUMANPICK:
 			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['h_captain'],info['h_captain'] ))
 		else:
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], info['b_captain']))
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (info['b_captain'], self.startinfo['b_captain']))

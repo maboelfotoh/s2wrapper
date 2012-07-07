@@ -317,7 +317,9 @@ class admin(ConsolePlugin):
 
 		if slap:
 			#slap will move a player x+100, y+200 to get them off of a structure
-			
+			if self.PHASE != 5:
+				return
+				
 			slapclient = self.getPlayerByName(slap.group(1))
 			kwargs['Broadcast'].broadcast(\
 				"set _slapindex #GetIndexFromClientNum(%s)#;\
