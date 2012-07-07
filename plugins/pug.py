@@ -372,15 +372,17 @@ class pug(ConsolePlugin):
 		team1 = len(teamone)
 		team2 = len(teamtwo)
 		
-		if team1 == team2:
-			continue
-		
 		if team1 > team2:
 			self.HUMANPICK = False
 			self.setpicking(**kwargs)
 		if team2 > team1:
 			self.HUMANPICK = True
 			self.setpicking(**kwargs)
+		
+		if team1 == team2:
+			return
+		
+
 			
 	def listClients(self, *args, **kwargs):
 
