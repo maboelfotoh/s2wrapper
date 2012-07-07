@@ -349,7 +349,7 @@ class pug(ConsolePlugin):
 	def onServerStatus(self, *args, **kwargs):
 		if self.STARTED != 1:
 			return
-		pickthread = threading.Thread(target=self.ingame_picking, args=(None), kwargs=kwargs)
+		pickthread = threading.Thread(target=self.ingame_picking, args=(), kwargs=kwargs)
 		pickthread.start()
 
 	def ingame_picking(self, *args, **kwargs):
