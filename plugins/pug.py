@@ -20,6 +20,7 @@ class pug(ConsolePlugin):
 	HUMANPICK = False
 	playerlist = []
 	startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
+	teamlist = [];
 	TIME = 0
 	
 	def onPluginLoad(self, config):
@@ -137,7 +138,15 @@ class pug(ConsolePlugin):
 		cli = args[0]
 		client = self.getPlayerByClientNum(cli)
 		client['team'] = team
-
+		
+		if self.PICKING:
+			for each in self.teamlist:
+				if each['player'] == cli and team != each['team']:
+					#don't let them switch
+					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team'])
+					return
+			self.teamlist.append({"player" : cli, "team" : team});
+			
 	def onGameStart (self, *args, **kwargs):
 		
 		self.STARTSTAMP = args[1]
@@ -149,9 +158,10 @@ class pug(ConsolePlugin):
 		if phase == 5:
 			self.STARTSTAMP = args[1]
 			self.STARTED = True
+			self.PICKING = False
 			
 		if phase == 6:
-
+			self.PICKING = False
 			self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
 			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description -1;\
 							set State_Interrupted_EffectPath \"trigger UpdateDetail 1\";\
@@ -290,20 +300,50 @@ class pug(ConsolePlugin):
 				self.populate(**kwargs)
 		
 		if event == 'Resign':
+		#if pick has begun and a captain resigns, just reset the whole damn thing
+			if self.PICKING:
+				self.resetall(**kwargs);
+				
 			if client['clinum'] == self.startinfo['h_captain']:
+				
 				self.startinfo['h_captain'] = None
 				self.startinfo['h_ready'] = False
 				kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"; set Pet_HumanWorker_Inventory9 \"\";")
+				
 			if client['clinum'] == self.startinfo['b_captain']:
+				
 				self.startinfo['b_captain'] = None
 				self.startinfo['b_ready'] = False
 				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
 				
-			self.setpicking(**kwargs)
+			#self.setpicking(**kwargs)
+	
+	def resetall(self, **kwargs):
+		self.PICKING = False
+		self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
+		kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description -1;\
+							set State_Interrupted_EffectPath \"trigger UpdateDetail 1\";\
+							set Gadget_Hail_ModelPath \"trigger UpdateError 1\";\
+							set State_ImpPoisoned_Name \"trigger UpdateSpeed 1\";\
+							set Gadget_Hail_Description \"trigger UpdatePercent -1\";\
+							set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 1\";\
+							set maxteams 3;\
+							set sv_maxteamdifference 10;\
+							set Pet_Shaman_Prerequisite 1;\
+							set Pet_HumanWorker_Inventory9 \"\";\
+							set Pet_BeastWorker_Inventory9 \"\";")
+			
+		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"showwidget team_button0; showwidget team_button1\"")
+		
+		for each in self.playerlist:
+			if each['active']:
+				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0; SendMessage -1 ^yTeams are reset after captain resignation." % (each['clinum']))
+		
+		
 								
 	def beginpicking(self, **kwargs):
 		self.PICKING = True
-		
+		self.teamlist = [];
 		#start by making the teams unjoinable
 		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
 		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
