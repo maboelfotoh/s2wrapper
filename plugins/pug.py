@@ -342,16 +342,19 @@ class pug(ConsolePlugin):
 		
 								
 	def beginpicking(self, **kwargs):
+		#move everyone to spec
+		for each in self.playerlist:
+			if each['active']:
+				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['clinum']))
+				
 		self.PICKING = True
 		self.teamlist = [];
 		#start by making the teams unjoinable
 		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
 		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
 
-		#move everyone to spectator, but move captains to the appropriate team
+		#move captains to the appropriate team
 		for each in self.playerlist:
-			if each['active']:
-				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['clinum']))
 			if each['clinum'] == self.startinfo['h_captain']:
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (each['clinum']))
 			if each['clinum'] == self.startinfo['b_captain']:
