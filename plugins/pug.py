@@ -187,8 +187,7 @@ class pug(ConsolePlugin):
 				each['newteam'] = 0
 			self.PICKING = False
 			self.STARTED = False
-			kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"showwidget team_button0; showwidget team_button1\"")
-
+			resetall(**kwargs)
 	
 	def togglePlay(self, client, playing=None, **kwargs):
 		color = '^g'
