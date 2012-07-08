@@ -298,7 +298,9 @@ class pug(ConsolePlugin):
 				self.startinfo['b_captain'] = None
 				self.startinfo['b_ready'] = False
 				kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
-									
+				
+			self.setpicking(**kwargs)
+								
 	def beginpicking(self, **kwargs):
 		self.PICKING = True
 		
