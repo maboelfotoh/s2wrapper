@@ -143,7 +143,7 @@ class pug(ConsolePlugin):
 			for each in self.teamlist:
 				if each['player'] == cli and team != each['team']:
 					#don't let them switch
-					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team'])
+					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team']))
 					return
 			self.teamlist.append({"player" : cli, "team" : team});
 			
