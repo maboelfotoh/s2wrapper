@@ -140,8 +140,9 @@ class pug(ConsolePlugin):
 		client['team'] = team
 		
 		if self.PICKING:
+			print self.teamlist
 			for each in self.teamlist:
-				if each['player'] == cli and team != each['team']:
+				if (each['player'] == cli) and (team != each['team']):
 					#don't let them switch
 					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team']))
 					return
@@ -352,7 +353,9 @@ class pug(ConsolePlugin):
 		#start by making the teams unjoinable
 		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
 		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
-
+		
+		time.sleep(0.6)	
+		self.PICKING = True
 		#move captains to the appropriate team and have them switch back to lobby
 		for each in self.playerlist:
 			if each['clinum'] == self.startinfo['h_captain']:
@@ -369,7 +372,7 @@ class pug(ConsolePlugin):
 			self.HUMANPICK = False
 			self.setpicking(**kwargs)
 			
-		self.PICKING = True
+		
 	def populate(self, **kwargs):
 	
 		for each in self.playerlist:
