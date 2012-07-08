@@ -420,6 +420,6 @@ class pug(ConsolePlugin):
 	def setpicking(self, **kwargs):
 
 		if self.HUMANPICK:
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfoo['h_captain'],self.startinfo['h_captain'] ))
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],self.startinfo['h_captain'] ))
 		else:
-			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfoo['b_captain'], self.startinfo['b_captain']))
+			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['b_captain'], self.startinfo['b_captain']))
