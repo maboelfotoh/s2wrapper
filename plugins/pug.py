@@ -146,7 +146,7 @@ class pug(ConsolePlugin):
 					#don't let them switch
 					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team']))
 					return
-			self.teamlist.append({"player" : cli, "team" : team});
+			
 			
 	def onGameStart (self, *args, **kwargs):
 		
@@ -163,6 +163,7 @@ class pug(ConsolePlugin):
 			
 		if phase == 6:
 			self.PICKING = False
+			self.teamlist = []
 			self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
 			kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description -1;\
 							set State_Interrupted_EffectPath \"trigger UpdateDetail 1\";\
@@ -249,6 +250,7 @@ class pug(ConsolePlugin):
 		if event == 'Select':
 			player = self.getPlayerByName(value)
 			#switch everything to ingame_picking function if the game is already started
+			
 			if self.PHASE == 5:
 				#pickthread = threading.Thread(target=self.ingame_picking, args=(caller, client, player, None), kwargs=kwargs)
 				#pickthread.start()
@@ -262,6 +264,7 @@ class pug(ConsolePlugin):
 			
 				player['newteam'] = 1
 				client['newteam'] = 1
+				self.teamlist.append({"player" : player["clinum"], "team" : 1});
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['b_captain'], self.startinfo['b_captain']))
@@ -273,6 +276,7 @@ class pug(ConsolePlugin):
 					return
 				player['newteam'] = 2
 				client['newteam'] = 2
+				self.teamlist.append({"player" : player["clinum"], "team" : 2});
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],info['h_captain'] ))
@@ -321,6 +325,7 @@ class pug(ConsolePlugin):
 	
 	def resetall(self, **kwargs):
 		self.PICKING = False
+		self.teamlist = []
 		self.startinfo = {'h_captain' : None, 'h_ready' : False, 'h_first' : False, 'b_captain' : None, 'b_ready' : False, 'b_first' : False}
 		kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description -1;\
 							set State_Interrupted_EffectPath \"trigger UpdateDetail 1\";\
@@ -340,7 +345,8 @@ class pug(ConsolePlugin):
 			if each['active']:
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0; SendMessage -1 ^yTeams are reset after captain resignation." % (each['clinum']))
 		
-		
+	def RegisterStart(self, **kwargs):
+		self.PICKING = True
 								
 	def beginpicking(self, **kwargs):
 		#move everyone to spec
@@ -353,9 +359,7 @@ class pug(ConsolePlugin):
 		#start by making the teams unjoinable
 		kwargs['Broadcast'].broadcast("set sv_setupTimeCommander 600000000; set sv_maxteamdifference 1; set State_ImpPoisoned_ExpiredEffectPath \"trigger UpdateExtraction 0\";")
 		kwargs['Broadcast'].broadcast("ClientExecScript -1 clientdo cmd  \"hidewidget team_button0; hidewidget team_button1\"")
-		
-		time.sleep(0.6)	
-		self.PICKING = True
+
 		#move captains to the appropriate team and have them switch back to lobby
 		for each in self.playerlist:
 			if each['clinum'] == self.startinfo['h_captain']:
@@ -364,6 +368,8 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (each['clinum']))
 		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"Action ToggleLobby\"" % (self.startinfo['h_captain']))
 		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd  \"Action ToggleLobby\"" % (self.startinfo['b_captain']))
+		self.teamlist.append({"player" : self.startinfo['h_captain'], "team" : 1});
+		self.teamlist.append({"player" : self.startinfo['b_captain'], "team" : 2});
 		#Set variables to get the first captain to start picking
 		if self.startinfo['h_first']:
 			self.HUMANPICK = True
@@ -372,6 +378,7 @@ class pug(ConsolePlugin):
 			self.HUMANPICK = False
 			self.setpicking(**kwargs)
 			
+		kwargs['Broadcast'].broadcast("echo STARTTOURNEY")
 		
 	def populate(self, **kwargs):
 	
