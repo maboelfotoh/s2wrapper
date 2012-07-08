@@ -282,7 +282,7 @@ class pug(ConsolePlugin):
 				self.teamlist.append({"player" : player["clinum"], "team" : 2});
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
-				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],info['h_captain'] ))
+				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],self.startinfo['h_captain'] ))
 				self.HUMANPICK = True
 				
 			if self.PICKING:
