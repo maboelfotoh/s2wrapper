@@ -90,12 +90,15 @@ class pug(ConsolePlugin):
 			self.startinfo['h_captain'] = None
 			self.startinfo['h_ready'] = False
 			kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"; set Pet_HumanWorker_Inventory9 \"\";")
-
+			if self.PICKING:
+				resetall(**kwargs)
 		if client['clinum'] == self.startinfo['b_captain']:
 			self.startinfo['b_captain'] = None
 			self.startinfo['b_ready'] = False
 			kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
-			
+			if self.PICKING:
+				resetall(**kwargs)
+				
 	def onSetName(self, *args, **kwargs):
 
 		cli = args[0]
@@ -283,10 +286,7 @@ class pug(ConsolePlugin):
 				self.HUMANPICK = not self.HUMANPICK
 		#Ready
 		if event == 'Ready':
-			#TODO:only make the button do something if the minimum number of players are reached
-			#if self.PHASE != 2:
-			#	kwargs['Broadcast'].broadcast("SendMessage %s You cannot be ready until minimum number of players per side is reached" % (caller))
-			#	return
+
 			if self.STARTED:
 				return
 			if caller == self.startinfo['h_captain']:
