@@ -143,13 +143,16 @@ class pug(ConsolePlugin):
 		client['team'] = team
 		
 		if self.PICKING:
-			print self.teamlist
+			
 			for each in self.teamlist:
 				if (each['player'] == cli) and (team != each['team']):
 					#don't let them switch
 					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team']))
 					return
-			
+				if each['player'] == cli:
+					return
+						
+				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['player'))
 			
 	def onGameStart (self, *args, **kwargs):
 		
