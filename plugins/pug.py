@@ -149,10 +149,8 @@ class pug(ConsolePlugin):
 					#don't let them switch
 					kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# %s" % (each['player'],each['team']))
 					return
-				if each['player'] == cli:
-					return
 						
-				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['player']))
+				#kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['player']))
 			
 	def onGameStart (self, *args, **kwargs):
 		
@@ -286,6 +284,9 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],info['h_captain'] ))
 				self.HUMANPICK = not self.HUMANPICK
+				
+			if self.PICKING:
+				self.setpicking(**kwargs)
 		#Ready
 		if event == 'Ready':
 

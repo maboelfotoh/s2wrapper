@@ -333,11 +333,11 @@ class admin(ConsolePlugin):
 			offclient = self.getPlayerByName(micoff.group(1))
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum']))
 				 
-		#if changeworld:
+		if changeworld:
 			#change the map
-		#	kwargs['Broadcast'].broadcast(\
-		#		"changeworld %s"\
-		#		 % (changeworld.group(2)))
+			kwargs['Broadcast'].broadcast(\
+				"changeworld %s"\
+				 % (changeworld.group(2)))
 
 		
 		if balance:
