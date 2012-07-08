@@ -271,7 +271,7 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Humans!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 1" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['b_captain'], self.startinfo['b_captain']))
-				self.HUMANPICK = not self.HUMANPICK
+				self.HUMANPICK = False
 				
 			if caller == self.startinfo['b_captain']:
 				if not player['play']:
@@ -283,7 +283,7 @@ class pug(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("SendMessage -1 ^r%s^w has selected ^y%s ^wfor the Beasts!" % (client['name'], player['name']))
 				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 2" % (player['clinum']))
 				kwargs['Broadcast'].broadcast("set State_SuccessfulBlock_Description %s; set Gadget_Hail_Description \"trigger UpdatePercent %s\"" % (self.startinfo['h_captain'],info['h_captain'] ))
-				self.HUMANPICK = not self.HUMANPICK
+				self.HUMANPICK = True
 				
 			if self.PICKING:
 				self.setpicking(**kwargs)
