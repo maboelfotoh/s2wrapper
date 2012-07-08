@@ -152,7 +152,7 @@ class pug(ConsolePlugin):
 				if each['player'] == cli:
 					return
 						
-				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['player'))
+				kwargs['Broadcast'].broadcast("set _index #GetIndexFromClientNum(%s)#; SetTeam #_index# 0" % (each['player']))
 			
 	def onGameStart (self, *args, **kwargs):
 		
