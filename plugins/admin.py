@@ -337,7 +337,7 @@ class admin(ConsolePlugin):
 			#change the map
 			kwargs['Broadcast'].broadcast(\
 				"changeworld %s"\
-				 % (changeworld.group(2)))
+				 % (changeworld.group(1)))
 
 		
 		if balance:
