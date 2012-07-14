@@ -380,7 +380,7 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin <phrase> kick playername ^wwill remove a player from the server."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin <phrase> playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
+				"SendMessage %s ^radmin <phrase> ban playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin <phrase> micoff playername ^wwill turn the players mic off. Use on mic spammers."\
