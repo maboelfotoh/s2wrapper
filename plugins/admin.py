@@ -280,6 +280,7 @@ class admin(ConsolePlugin):
 		balance = re.match("admin "+self.PHRASE+" balance", message, flags=re.IGNORECASE)
 		getbalance = re.match("admin "+self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match("admin "+self.PHRASE+" report balance", message, flags=re.IGNORECASE)
+		swap = re.match("admin "+self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -364,6 +365,22 @@ class admin(ConsolePlugin):
 			balancethread = threading.Thread(target=self.reportBalance, args=(), kwargs=kwargs)
 			balancethread.start()
 
+		if swap:
+			#swap a player to a different team
+			swapplayer = self.getPlayerByName(swap.group(1))
+			newteam = 0
+			team = swapplayer['team']
+			if team == 1:
+				newteam = 2
+			if team == 2;
+				newteam = 1
+			if newteam == 0:
+				return
+				
+			kwargs['Broadcast'].broadcast(\
+				"SetTeam #GetIndexFromClientNum(%s)# %s"\
+				 % (swapplayer['clinum'], newteam))
+				 
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -385,9 +402,12 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin <phrase> micoff playername ^wwill turn the players mic off. Use on mic spammers."\
 				 % (client['clinum']))
-			#kwargs['Broadcast'].broadcast(\
-			#	"SendMessage %s ^radmin <phrase> changeworld mapname ^wwill change the map to the desired map."\
-			#	 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin <phrase> changeworld mapname ^wwill change the map to the desired map."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin <phrase> swap playername ^wwill move a specific player to another team."\
+				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin <phrase> balance ^wwill move two players to achieve balance."\
 				 % (client['clinum']))
