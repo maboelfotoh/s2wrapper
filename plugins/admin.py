@@ -372,7 +372,7 @@ class admin(ConsolePlugin):
 			team = swapplayer['team']
 			if team == 1:
 				newteam = 2
-			if team == 2;
+			if team == 2:
 				newteam = 1
 			if newteam == 0:
 				return
