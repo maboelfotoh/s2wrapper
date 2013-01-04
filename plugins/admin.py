@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.5.0"
+	VERSION = "1.5.1"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -31,6 +31,8 @@ class admin(ConsolePlugin):
 	LASTMESSAGE = {'client' : None, 'firsttime' : 0, 'lasttime' : 0, 'repeat' : 0}
 	DLL = '2f4827b8'
 	PHRASE = 'xRa'
+	norunes = 0
+	
 	def onPluginLoad(self, config):
 		
 		self.ms = MasterServer ()
@@ -80,7 +82,17 @@ class admin(ConsolePlugin):
 		#any extra scripts that need to go in can be done here
 		#these are for identifying bought and sold items
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# SOLD #_item#; echo\" sellitem")
-		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# BOUGHT #_item#; echo\" buyitem")
+		if int(self.norunes) == 1:
+		
+			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _buyindex #GetIndexFromClientNum(|#_client|#)#;\
+		 		set _none \"\"; set _item #GetScriptParam(itemname)#;\
+		 		if #StringEquals(|#_item|#,|#_none|#)# TakeItem #_buyindex# #GetScriptParam(slot)#;\
+		 		if #StringEquals(|#_item|#,|#_none|#)# SendMessage #GetScriptParam(clientid)# ^yYou cannot equip persistent items on this server;\
+		 		echo ITEM: Client #_client# BOUGHT #_item#; echo\" buyitem")
+		else:
+			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#;\
+				echo ITEM: Client #_client# BOUGHT #_item#; echo\" buyitem")
+				
 		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Name \"S2WRAPPER\"")
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
@@ -482,6 +494,7 @@ class admin(ConsolePlugin):
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
 		self.PHASE = phase
+		kwargs['Broadcast'].broadcast("echo SERVERVAR: norunes is #norunes#")
 		
 		if (phase == 7):
 			self.banlist = []	
@@ -489,6 +502,7 @@ class admin(ConsolePlugin):
 				each['team'] = 0
 				each['commander'] = False
 				each['value'] = 0
+			
 					
 		if (phase == 6):
 			self.makepass()
@@ -905,3 +919,12 @@ class admin(ConsolePlugin):
    		for i in range(3):
         		newpasswd = newpasswd + choice(chars)
 		self.PHRASE = newpasswd
+		
+	def getServerVar(self, *args, **kwargs):
+	        print args[0], args[1]
+		var = args[0]
+		
+		if var == 'norunes':
+			self.norunes = args[1]
+		print self.norunes
+		
