@@ -270,7 +270,7 @@ class ConsoleParser:
 			self.onConnect     : re.compile ('Sv: New client connection: #(\d+), ID: (\d+), (\d+\.\d+\.\d+\.\d+):(\d+)'),
 			self.onSetName     : re.compile ('Sv: Client #(\d+) set name to (\S+)'),
 			self.onPlayerReady : re.compile ('Sv: Client #(\d+) is ready to enter the game'),
-			self.onAccountId   : re.compile ('(?:Sv: )*?Getting persistant stats for client (\d+) \(Account ID: (\d+)\)\.'),
+			self.onAccountId   : re.compile ('(?:SGame: |Sv: )*?Getting persistant stats for client (\d+) \(Account ID: (\d+)\)\.'),
 			self.onStartServer : re.compile ('^K2 Engine start up.*'),
 			self.onNewGameStarted : re.compile ('NewGameStarted'),
 			#self.onConnected   : re.compile ('Sv: (\S+) has connected.'),

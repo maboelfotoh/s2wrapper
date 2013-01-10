@@ -74,15 +74,16 @@ class admin(ConsolePlugin):
 				PluginsManager.reload(name)
 			
 	def onStartServer(self, *args, **kwargs):
-				
+		kwargs['Broadcast'].broadcast("Set norunes False")		
 		self.playerlist = []
 		self.banlist = []	
 
 	def RegisterScripts(self, **kwargs):
 		#any extra scripts that need to go in can be done here
+		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
 		#these are for identifying bought and sold items
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _item #GetScriptParam(itemname)#; echo ITEM: Client #_client# SOLD #_item#; echo\" sellitem")
-		if int(self.norunes) == 1:
+		if self.norunes:
 		
 			kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set _client #GetScriptParam(clientid)#; set _buyindex #GetIndexFromClientNum(|#_client|#)#;\
 		 		set _none \"\"; set _item #GetScriptParam(itemname)#;\
@@ -95,7 +96,6 @@ class admin(ConsolePlugin):
 				
 		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Name \"S2WRAPPER\"")
-		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"echo SCRIPT Client #GetScriptParam(clientid)# #GetScriptParam(what)# with value #GetScriptParam(value)#; echo\" scriptinput")
 		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set kid #GetScriptParam(clientid)#; set kcheck _karmaflag#kid#; if [kcheck > 0] clientexecscript clientdo #kid# cmd \\\"set voice_disabled true\\\"; echo\" spawn")
 	def getPlayerByClientNum(self, cli):
 
