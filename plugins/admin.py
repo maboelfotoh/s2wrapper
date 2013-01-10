@@ -287,6 +287,8 @@ class admin(ConsolePlugin):
 			
 		#Pass to command back to player to send via scriptinput
 		if supercommand:
+			if not superuser:
+				return
 			command = supercommand.group(1)
 			kwargs['Broadcast'].broadcast(\
 				"clientexecscript %s clientdo cmd \"SendScriptInput what super value #admin_phrase#\\\" %s\\\"\"" % (clinum, command))
