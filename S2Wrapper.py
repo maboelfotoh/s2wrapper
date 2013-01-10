@@ -302,7 +302,7 @@ class ConsoleParser:
 			self.getMatchID   : re.compile('SGame: Authenticated server successfully, stats will be recorded this game. Match ID: (\d+), Server ID: (\d+)'),
 			self.getEvent : re.compile('(?:SGame: |Sv: )*?EVENT (\S+) (\S+) on (\S+) by (\S+) of type (\S+) at (\d+\.\d+) (\d+\.\d+) (\d+\.\d+)'),
 			self.mapDimensions : re.compile('Error: CWorld::GetTerrainHeight\(\) - Coordinates are out of bounds'),
-			self.onScriptEvent : re.compile('(?:SGame: |Sv: )*?SCRIPT Client (\d+) (\S+) with value (\S+)')
+			self.onScriptEvent : re.compile('(?:SGame: |Sv: )*?SCRIPT Client (\d+) (\S+) with value (.*)')
 		})
 
 	def onLineReceived(self, line, dh):
