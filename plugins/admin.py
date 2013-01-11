@@ -302,6 +302,7 @@ class admin(ConsolePlugin):
 	def adminCommand(self, caller, value, **kwargs):
 		
 		client = self.getPlayerByClientNum(caller)
+		clinum = caller
 		message = str(value)
 
 		#Matches for normal admins
