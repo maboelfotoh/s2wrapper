@@ -303,8 +303,9 @@ class admin(ConsolePlugin):
 		
 		client = self.getPlayerByClientNum(caller)
 		clinum = caller
+		name = client['name']
 		message = str(value)
-
+		
 		#Matches for normal admins
 		restart = re.match(self.PHRASE+" restart", message, flags=re.IGNORECASE)
 		shuffle = re.match(self.PHRASE+" shuffle", message, flags=re.IGNORECASE)
