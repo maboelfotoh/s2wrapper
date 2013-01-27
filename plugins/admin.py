@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Auto-update incorporation, yet another last test
+# Added requestTracker to prevent console spamming
 import re
 import math
 import time
@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.5.2"
+	VERSION = "1.5.3"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -146,7 +146,10 @@ class admin(ConsolePlugin):
 					 'admin' : False,\
 					 'value' : 0,\
 					 'karma' : 0,\
-					 'commander' : False})
+					 'commander' : False,\
+					 'req' : 0,\
+					 'f_req' : 0,\
+					 'l_req' : 0})
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -387,19 +390,19 @@ class admin(ConsolePlugin):
 
 			kwargs['Broadcast'].broadcast("SendMessage -1 %s has balanced the game." % (name))
 			self.listClients(**kwargs)
-			balancethread = threading.Thread(target=self.onBalance, args=(clinum, None), kwargs=kwargs)
+			balancethread = threading.Thread(target=self.doBalance, args=(clinum,True,False), kwargs=kwargs)
 			balancethread.start()
 			
 
 		if getbalance:
 			self.listClients(**kwargs)
-			balancethread = threading.Thread(target=self.getBalance, args=(clinum, None), kwargs=kwargs)
+			balancethread = threading.Thread(target=self.doBalance, args=(clinum,False,False), kwargs=kwargs)
 			balancethread.start()
 
 
 		if reportbal:
 			self.listClients(**kwargs)
-			balancethread = threading.Thread(target=self.reportBalance, args=(), kwargs=kwargs)
+			balancethread = threading.Thread(target=self.doBalance, args=(clinum,False,True), kwargs=kwargs)
 			balancethread.start()
 
 		if swap:
@@ -453,14 +456,15 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
-				 
-	def getBalance(self, *args, **kwargs):
-		clinum = args[0]
+	
+	
+	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
+		clinum = admin
 		
 		for each in self.playerlist:
 			each['team'] = 0
 			
-		time.sleep(2)
+		time.sleep(1)
 		teamone = []
 		teamtwo = []
 
@@ -476,36 +480,88 @@ class admin(ConsolePlugin):
 		teamonestats = self.getTeamInfo(teamone)
 		teamtwostats = self.getTeamInfo(teamtwo)
 		stack = round(self.evaluateBalance(teamone, teamtwo),1)
+		startstack = abs(self.evaluateBalance(teamone, teamtwo))
+		
+		if doReport:
+			kwargs['Broadcast'].broadcast(\
+			"SendMessage -1 ^y Team One (%s players) Avg. SF is ^r%s^y median is ^r%s^y, Team Two (%s players) Avg. SF is ^r%s^y median is ^r%s.^y Stack value: ^r%s" \
+		 	% (teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'], 1), round(teamtwostats['median'],1), abs(stack)))	
+		 	return
+		 	
 		kwargs['Broadcast'].broadcast(\
 		"SendMessage %s ^y Team One (%s players) Avg. SF is ^r%s^y median is ^r%s^y, Team Two (%s players) Avg. SF is ^r%s^y median is ^r%s. ^yStack value: ^r%s" \
-		 % (clinum, teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'],1), round(teamtwostats['median'], 1), abs(stack)))
-
-	def reportBalance(self, **kwargs):
+		 % (clinum, teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'],1), round(teamtwostats['median'], 1), abs(stack)))	
+		#Find the players to swap
+		lowest = -1
+		pick1 = None
+		pick2 = None
 		
-		for each in self.playerlist:
-			each['team'] = 0
-			
-		time.sleep(2)
-		teamone = []
-		teamtwo = []
-		#populate current team lists:
-		for each in self.playerlist:
-			if not each['active']:
+		for player1 in teamone:
+			if player1['commander']:
 				continue
-			if each['team'] == 1:
-				teamone.append(each)
-			if each['team'] == 2:
-				teamtwo.append(each)
+			for player2 in teamtwo:
+				if player2['commander']:
+					continue
+				#sort of inefficient to send the teamlist each time				
+				ltarget = abs(self.evaluateBalance(teamone, teamtwo, player1, player2, True))
+				
+				if (lowest < 0):
+					lowest = ltarget
+					pick1 = player1
+					pick2 = player2
+					continue
+			
+				if (lowest < ltarget):
+					continue
+			
+				lowest = ltarget
+				pick1 = player1
+				pick2 = player2
 
-		teamonestats = self.getTeamInfo(teamone)
-		teamtwostats = self.getTeamInfo(teamtwo)
-		stack = round(self.evaluateBalance(teamone, teamtwo), 1)
+		#If the stack isn't improved, abort it
+		if (lowest >= startstack):
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^yUnproductive balance. No swapping scenario would improve the balance over its current state." % (admin))
+			return
+		
 		kwargs['Broadcast'].broadcast(\
-		"SendMessage -1 ^y Team One (%s players) Avg. SF is ^r%s^y median is ^r%s^y, Team Two (%s players) Avg. SF is ^r%s^y median is ^r%s.^y Stack value: ^r%s" \
-		 % (teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'], 1), round(teamtwostats['median'],1), abs(stack)))
+		"SendMessage %s ^y Balance will swap ^r%s ^yand ^r%s" \
+		 % (clinum, pick1['name'], pick2['name']))
+		
+		if not doBalance:
+			index1 = map(itemgetter('clinum'), teamone).index(pick1['clinum'])
+			index2 = map(itemgetter('clinum'), teamtwo).index(pick2['clinum'])
+		
+			teamone[index1]['team'] = 2
+			teamtwo[index2]['team'] = 1
 
+			teamonestats = self.getTeamInfo(teamone)
+			teamtwostats = self.getTeamInfo(teamtwo)
+			stack = round(self.evaluateBalance(teamone, teamtwo),1)
+			#kwargs['Broadcast'].broadcast(\
+		#"SendMessage %s ^cProposed change: ^y Team One (%s players) Avg. SF: ^r%s^y median SF: ^r%s^y, Team Two (%s players) Avg. SF: ^r%s^y median SF: ^r%s. ^yStack value: ^r%s" \
+		#% (clinum, teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'],1), round(teamtwostats['median'], 1), abs(stack)))
+		 	return
+			
+		if doBalance:
+			#Do the switch
+			kwargs['Broadcast'].broadcast(\
+				"set _index #GetIndexFromClientNum(%s)#;\
+			 	SetTeam #_index# 2;\
+			 	set _index #GetIndexFromClientNum(%s)#;\
+			 	SetTeam #_index# 1"\
+			 	% (pick1['clinum'], pick2['clinum']))
+		
+			#Give them gold if needed
+			self.giveGold(True, pick1, **kwargs)
+			self.giveGold(True, pick2, **kwargs)
 
-				 
+			teamonestats = self.getTeamInfo(teamone)
+			teamtwostats = self.getTeamInfo(teamtwo)
+			kwargs['Broadcast'].broadcast(\
+			"SendMessage -1 ^yAfter balance: Team One Avg. SF was ^r%s^y median was ^r%s^y, Team Two Avg. SF was ^r%s^y median was ^r%s"\
+			 % (teamonestats['avg'], teamonestats['median'], teamtwostats['avg'], teamtwostats['median']))
+	 				 
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
 		self.PHASE = phase
@@ -609,6 +665,8 @@ class admin(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client['team'] = team
 
+		self.requestTracker(cli, **kwargs)
+
 	def onShuffle (self, *args, **kwargs):
 		
 		for each in self.playerlist:
@@ -657,88 +715,7 @@ class admin(ConsolePlugin):
 		#self.onBalance(clinum, **kwargs)
 		kwargs['Broadcast'].broadcast("Startgame")
 		
-	def onBalance(self, *args, **kwargs):
-
-		for each in self.playerlist:
-			each['team'] = 0
-			
-		time.sleep(2)
-		teamone = []
-		teamtwo = []
-
-		#populate current team lists:
-		for each in self.playerlist:
-			if not each['active']:
-				continue
-			if each['team'] == 1:
-				teamone.append(each)
-			if each['team'] == 2:
-				teamtwo.append(each)
-
-		#Get Information about the teams
 		
-		teamonestats = self.getTeamInfo(teamone)
-		teamtwostats = self.getTeamInfo(teamtwo)
-		startstack = abs(self.evaluateBalance(teamone, teamtwo))
-		
-		#Send message to admin that called the shuffle/balance
-		kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^yPrior to balance: Team One Avg. SF was ^r%s^y median was ^r%s^y, Team Two Avg. SF was ^r%s^y median was ^r%s" \
-			 % (args[0], teamonestats['avg'], teamonestats['median'], teamtwostats['avg'], teamtwostats['median']))
-
-				
-		#Find the players to swap
-		lowest = -1
-		pick1 = None
-		pick2 = None
-		
-		for player1 in teamone:
-			if player1['commander']:
-				continue
-			for player2 in teamtwo:
-				if player2['commander']:
-					continue
-				#sort of inefficient to send the teamlist each time				
-				ltarget = abs(self.evaluateBalance(teamone, teamtwo, player1, player2, True))
-				
-				if (lowest < 0):
-					lowest = ltarget
-					pick1 = player1
-					pick2 = player2
-					continue
-			
-				if (lowest < ltarget):
-					continue
-			
-				lowest = ltarget
-				pick1 = player1
-				pick2 = player2
-
-		#If the stack isn't improved, abort it
-		if (lowest >= startstack):
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^yUnproductive balance. No swapping scenario would improve the balance over its current state." % (args[0]))
-			return
-		#Do the switch
-		kwargs['Broadcast'].broadcast(\
-			"set _index #GetIndexFromClientNum(%s)#;\
-			 SetTeam #_index# 2;\
-			 set _index #GetIndexFromClientNum(%s)#;\
-			 SetTeam #_index# 1"\
-			 % (pick1['clinum'], pick2['clinum']))
-		
-		#Give them gold if needed
-		self.giveGold(True, pick1, **kwargs)
-		self.giveGold(True, pick2, **kwargs)
-
-		teamonestats = self.getTeamInfo(teamone)
-		teamtwostats = self.getTeamInfo(teamtwo)
-
-		#kwargs['Broadcast'].broadcast(\
-		#	"SendMessage %s ^yAfter balance: Team One Avg. SF was ^r%s^y median was ^r%s^y, Team Two Avg. SF was ^r%s^y median was ^r%s"\
-		#	 % (clinum, teamonestats['avg'], teamonestats['median'], teamtwostats['avg'], teamtwostats['median']))
-
-
 	def getTeamInfo(self, teamlist, **kwargs):
 		
 		teamsf = []
@@ -795,19 +772,24 @@ class admin(ConsolePlugin):
 		
 	
 	def onUnitChange(self, *args, **kwargs):
+	
+		cli = args[0]
+		client = self.getPlayerByClientNum(cli)
+		self.requestTracker(cli, **kwargs)
+		
 		if args[1] != "Player_Commander":
 			return
 
-		cli = args[0]
-		client = self.getPlayerByClientNum(cli)
 		client['commander'] = True
+	
+		
 
 	def listClients(self, *args, **kwargs):
 
 		kwargs['Broadcast'].broadcast("listclients")
 
 	def onListClients(self, *args, **kwargs):
-		clinum = args[0]
+		clinum = int(args[0])
 		name = args[2]
 		ip = args[1]
 		
@@ -815,7 +797,7 @@ class admin(ConsolePlugin):
 		client = self.getPlayerByName(name)
 		if not client:
 		#if a player is missing from the list this will put them as an active player and get stats
-		#TODO: listclients clinum is always double diget (00, 01, etc.) so this might be a problem
+		#usually used when reloading plugin during a game
 			acct = self.ms.getAccount(name)
 			acctid = acct[name]
 			self.onConnect(clinum, 0000, ip, 0000, **kwargs)
@@ -864,7 +846,8 @@ class admin(ConsolePlugin):
 		trans = args[1]
 		newitem = args[2]
 		client = self.getPlayerByClientNum(cli)
-
+		self.requestTracker(cli, **kwargs)
+		
 		try:
 			value = self.itemlist[newitem]
 		except:
@@ -874,6 +857,7 @@ class admin(ConsolePlugin):
 			client['value'] += value
 		elif (trans == 'SOLD'):
 			client['value'] -= value
+		
 		
 
 	def giveGold(self, balance, client, **kwargs):
@@ -903,7 +887,8 @@ class admin(ConsolePlugin):
 		client = self.getPlayerByClientNum(caller)
 		event = args[1]
 		value = args[2]
-				
+		self.requestTracker(caller, **kwargs)
+			
 		if event == 'DLL':
 			if value == 'NONE':
 				return
@@ -942,11 +927,25 @@ class admin(ConsolePlugin):
    		for i in range(3):
         		newpasswd = newpasswd + choice(chars)
 		self.PHRASE = newpasswd
-		print self.PHRASE
 		
 	def getServerVar(self, *args, **kwargs):
 		var = args[0]
 		if var == 'norunes':
 			self.norunes = args[1]
 		
+	def requestTracker (self, cli, **kwargs):
+		tm = time.time()
+		client = self.getPlayerByClientNum(cli)
+		#If player requests item purchase, team join, unit select more than 12 times in 1 second, boot them
 		
+		if (tm - client['f_req']) > 1:
+			client['req'] = 0
+			client['f_req'] = tm
+			return
+			
+		client['req'] += 1
+		
+		if client['req'] > 10:
+			reason = "Spamming server requests results in automatic kicking."
+			kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (client['clinum'], reason))
+
