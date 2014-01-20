@@ -51,7 +51,7 @@ class Savage2Thread(threading.Thread):
 		self.config = config
 		
 	def run(self):
-		return
+		
 		self.launchDaemon ()
 
 	def launchDaemon (self):
