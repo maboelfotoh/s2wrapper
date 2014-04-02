@@ -333,6 +333,7 @@ class admin(ConsolePlugin):
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
 		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
+		banlist = re.match(self.PHRASE+" banlist (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -452,6 +453,17 @@ class admin(ConsolePlugin):
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
 				 
+		if banlist:
+			if len(self.banlistname) != 0: # check if banlist empty
+				for i, name in self.banlistname: 
+					kwargs['Broadcast'].broadcast(\
+						"SendMessage %s %s."\
+						% (client['clinum']), banlistname[i])
+			else:
+				kwargs['Broadcast'].broadcast(\
+					"SendMessage %s The Banlist is empty."\
+					% (client['clinum']))
+					
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -500,6 +512,9 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin banlist ^wwill show the current ban list to admins."\
+				% (client['clinum']))
 	
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
