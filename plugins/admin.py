@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.5.3"
+	VERSION = "1.5.4"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -262,7 +262,7 @@ class admin(ConsolePlugin):
 			self.LASTMESSAGE['firsttime'] = tm
 			self.LASTMESSAGE['repeat'] = 0	
 			
-		if self.LASTMESSAGE['repeat'] > 3 && event == 'admin' | event == 'super':
+		if self.LASTMESSAGE['repeat'] > 3:
 			if ((last - first) < 1):
 				reason = "Spamming chat results in automatic kicking."
 				kwargs['Broadcast'].broadcast(\
@@ -332,7 +332,7 @@ class admin(ConsolePlugin):
 		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
+		banlist = re.match(self.PHRASE+" banlist (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -427,25 +427,6 @@ class admin(ConsolePlugin):
 			self.listClients(**kwargs)
 			balancethread = threading.Thread(target=self.doBalance, args=(clinum,False,True), kwargs=kwargs)
 			balancethread.start()
-
-		if banlist:
-			if len(self.banlistname) != 0: # check if banlist empty
-				for i, name in self.banlistname: 
-					kwargs['Broadcast'].broadcast(\
-						"SendMessage %s %s."\
-						% (client['clinum']), banlistname[i])
-			else:
-				kwargs['Broadcast'].broadcast(\
-					"SendMessage %s The Banlist is empty."\
-					% (client['clinum']))
-					
-		if spec:
-			#swap a player to spec team
-			specplayer = self.getPlayerByName(spec.group(1))
-			team = swapplayer['team']
-			kwargs['Broadcast'].broadcast(\
-				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				% (specplayer['clinum'], 0)
 				
 		if swap:
 			#swap a player to a different team
@@ -461,7 +442,18 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
-				 
+
+		if banlist:
+			if len(self.banlistname) != 0: # check if banlist empty
+				for i, name in self.banlistname: 
+					kwargs['Broadcast'].broadcast(\
+						"SendMessage %s %s."\
+						% (client['clinum']), self.banlistname[i])
+			else:
+				kwargs['Broadcast'].broadcast(\
+					"SendMessage %s The Banlist is empty."\
+					% (client['clinum']))
+					
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -499,9 +491,6 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin swap playername ^wwill move a specific player to another team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin spec playername ^wwill move a specific player to spectator."\
-				% (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin balance ^wwill move two players to achieve balance."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
@@ -510,6 +499,9 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin banlist ^wwill show the current ban list to admins."\
+				% (client['clinum']))
 	
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
