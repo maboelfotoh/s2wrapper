@@ -332,7 +332,7 @@ class admin(ConsolePlugin):
 		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		banlist = re.match(self.PHRASE+" banlist (\S+)", message, flags=re.IGNORECASE)
+		banlist = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -396,7 +396,7 @@ class admin(ConsolePlugin):
 		if micon:
 			#turn on players mic with clientdo
 			onclient = self.getPlayerByName(micon.group(1))
-			kwargs['Broadcast'].broadcast("ClientExecScript $s clientdo cmd \"set voice_disabled false\"" % (offclient['clinum']))
+			kwargs['Broadcast'].broadcast("ClientExecScript $s clientdo cmd \"set voice_disabled false\"" % (onclient['clinum']))
 				 
 		if changeworld:
 			#change the map
