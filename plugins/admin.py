@@ -368,6 +368,7 @@ class admin(ConsolePlugin):
 				 % (kickclient['clinum'], reason))
 			self.banlist.append(kickclient['ip'])
 			self.banlistname.append(kickclient['name'])
+			print banlistname
 
 		if unban:
 			for index, namearg in self.banlistname:
