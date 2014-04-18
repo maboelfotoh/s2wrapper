@@ -368,7 +368,7 @@ class admin(ConsolePlugin):
 				 % (kickclient['clinum'], reason))
 			self.banlist.append(kickclient['ip'])
 			self.banlistname.append(kickclient['name'])
-			print banlistname
+			print self.banlistname
 
 		if unban:
 			for index, namearg in self.banlistname:
@@ -446,10 +446,11 @@ class admin(ConsolePlugin):
 
 		if banlist:
 			if len(self.banlistname) != 0: # check if banlist empty
-				for i, name in self.banlistname: 
+				kwargs['Broadcast'].broadcast("SendMessage %s Banlist:" % (client['clinum']))
+				for name in self.banlistname: 
 					kwargs['Broadcast'].broadcast(\
 						"SendMessage %s %s."\
-						% (client['clinum']), self.banlistname[i])
+						% (client['clinum']), name)
 			else:
 				kwargs['Broadcast'].broadcast(\
 					"SendMessage %s The Banlist is empty."\
