@@ -368,7 +368,7 @@ class admin(ConsolePlugin):
 				 % (kickclient['clinum'], reason))
 			self.banlist.append(kickclient['ip'])
 			self.banlistname.append(kickclient['name'])
-			print self.banlistname
+			#print self.banlistname
 
 		if unban:
 			for index, namearg in self.banlistname:
@@ -397,7 +397,7 @@ class admin(ConsolePlugin):
 		if micon:
 			#turn on players mic with clientdo
 			onclient = self.getPlayerByName(micon.group(1))
-			kwargs['Broadcast'].broadcast("ClientExecScript $s clientdo cmd \"set voice_disabled false\"" % (onclient['clinum']))
+			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled false\"" % (onclient['clinum']))
 				 
 		if changeworld:
 			#change the map
