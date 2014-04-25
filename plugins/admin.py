@@ -331,6 +331,7 @@ class admin(ConsolePlugin):
 		balance = re.match(self.PHRASE+" balance", message, flags=re.IGNORECASE)
 		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
+		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
 		banlist = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
 
@@ -428,6 +429,13 @@ class admin(ConsolePlugin):
 			self.listClients(**kwargs)
 			balancethread = threading.Thread(target=self.doBalance, args=(clinum,False,True), kwargs=kwargs)
 			balancethread.start()
+		
+		if spec:
+			specplayer = self.getPlayerByName(spec.group(1))
+			specteam = 0
+			kwargs['Broadcast'].broadcast(\
+				"SetTeam #GetIndexFromClientNum(%s)# %s"\
+				% (specplayer['clinum'], specteam))
 				
 		if swap:
 			#swap a player to a different team
@@ -447,10 +455,10 @@ class admin(ConsolePlugin):
 		if banlist:
 			if len(self.banlistname) != 0: # check if banlist empty
 				kwargs['Broadcast'].broadcast("SendMessage %s Banlist:" % (client['clinum']))
-				for name in self.banlistname: 
+				for testname in self.banlistname:
 					kwargs['Broadcast'].broadcast(\
 						"SendMessage %s %s."\
-						% (client['clinum']), name)
+						% (client['clinum']), testname)
 			else:
 				kwargs['Broadcast'].broadcast(\
 					"SendMessage %s The Banlist is empty."\
@@ -470,7 +478,7 @@ class admin(ConsolePlugin):
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin slap playername ^wwill move players off buildings."\
-				% (client['clinum']))
+				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin kick playername ^wwill remove a player from the server."\
 				 % (client['clinum']))
@@ -479,15 +487,18 @@ class admin(ConsolePlugin):
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin unban playername ^wwill unban a player from the server"\
-				% (client['clinum']))
+				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin micoff playername ^wwill turn the players mic off. Use on mic spammers."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin micon playername ^wwill turn the players mic on. Use only if the player will behave."\
-				% (client['clinum']))
+				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin changeworld mapname ^wwill change the map to the desired map."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin spec playername ^wwill move a specific player to spec team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin swap playername ^wwill move a specific player to another team."\
@@ -503,7 +514,7 @@ class admin(ConsolePlugin):
 				 % (client['clinum']))	
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin banlist ^wwill show the current ban list to admins."\
-				% (client['clinum']))
+				 % (client['clinum']))
 	
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
