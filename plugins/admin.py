@@ -22,7 +22,7 @@ class admin(ConsolePlugin):
 	playerlist = []
 	adminlist = []
 	banlist = []
-	banlistname = []
+	banlistid = []
 	ipban = []
 	itemlist = []
 	PHASE = 0
@@ -78,7 +78,7 @@ class admin(ConsolePlugin):
 		kwargs['Broadcast'].broadcast("Set norunes 0")		
 		self.playerlist = []
 		self.banlist = []
-		self.banlistname = []
+		self.banlistid = []
 
 	def RegisterScripts(self, **kwargs):
 		#any extra scripts that need to go in can be done here
@@ -114,7 +114,6 @@ class admin(ConsolePlugin):
 	def onConnect(self, *args, **kwargs):
 		
 		id = args[0]
-		name = args[1]
 		ip = args[2]
 		
 		for each in self.ipban:
@@ -134,8 +133,8 @@ class admin(ConsolePlugin):
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
 		
-		for each in self.banlistname:
-			if each == name:
+		for each in self.banlistid:
+			if each == id:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
 
@@ -368,14 +367,8 @@ class admin(ConsolePlugin):
 				"Kick %s \"%s\"" \
 				 % (kickclient['clinum'], reason))
 			self.banlist.append(kickclient['ip'])
-			self.banlistname.append(kickclient['name'])
-			#print self.banlistname
-
-		if unban:
-			for index, namearg in self.banlistname:
-				if namearg == name:
-					del self.banlistname[index]
-					del self.banlist[index]
+			self.banlistid.append(kickclient['acctid'])
+			print self.banlistid
 		
 		if slap:
 			#slap will move a player x+100, y+200 to get them off of a structure
@@ -451,19 +444,7 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
-
-		if banlist:
-			if len(self.banlistname) != 0: # check if banlist empty
-				kwargs['Broadcast'].broadcast("SendMessage %s Banlist:" % (client['clinum']))
-				for testname in self.banlistname:
-					kwargs['Broadcast'].broadcast(\
-						"SendMessage %s %s."\
-						% (client['clinum']), testname)
-			else:
-				kwargs['Broadcast'].broadcast(\
-					"SendMessage %s The Banlist is empty."\
-					% (client['clinum']))
-					
+			
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -628,7 +609,7 @@ class admin(ConsolePlugin):
 		
 		if (phase == 7):
 			self.banlist = []
-			self.banlistname = []
+			self.banlistid = []
 			for each in self.playerlist:
 				each['team'] = 0
 				each['commander'] = False
