@@ -132,11 +132,6 @@ class admin(ConsolePlugin):
 			if each == ip:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
-		
-		for each in self.banlistid:
-			if each == id:
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (id, reason))
 
 		for client in self.playerlist:
 			if (client['clinum'] == id):
@@ -196,11 +191,18 @@ class admin(ConsolePlugin):
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
 		id = args[1]
+		reason = "ban name test"
 		client = self.getPlayerByClientNum(cli)
 		client['acctid'] = int(id)
 
 		statthread = threading.Thread(target=self.getAccountInfo, args=(cli,None), kwargs=kwargs)
 		statthread.start()	
+		
+		for each in self.banlistid:
+			if each == id:
+				kwargs['Broadcast'].broadcast(\
+					"Kick %s \"%s\"" % (cli, reason))
+				
 
 		if self.isAdmin(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
@@ -321,7 +323,6 @@ class admin(ConsolePlugin):
 		shuffle = re.match(self.PHRASE+" shuffle", message, flags=re.IGNORECASE)
 		kick = re.match(self.PHRASE+" kick (\S+)", message, flags=re.IGNORECASE)
 		ban = re.match(self.PHRASE+" ban (\S+)", message, flags=re.IGNORECASE)
-		unban = re.match(self.PHRASE+" unban (\S+)", message, flags=re.IGNORECASE)
 		slap = re.match(self.PHRASE+" slap (\S+)", message, flags=re.IGNORECASE)
 		micoff = re.match(self.PHRASE+" micoff (\S+)", message, flags=re.IGNORECASE)
 		micon = re.match(self.PHRASE+" micon (\S+)", message, flags=re.IGNORECASE)
@@ -332,7 +333,6 @@ class admin(ConsolePlugin):
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		banlist = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -467,9 +467,6 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin unban playername ^wwill unban a player from the server"\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin micoff playername ^wwill turn the players mic off. Use on mic spammers."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
@@ -493,9 +490,6 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin banlist ^wwill show the current ban list to admins."\
-				 % (client['clinum']))
 	
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
