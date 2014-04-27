@@ -190,16 +190,14 @@ class admin(ConsolePlugin):
 
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
-		id = args[1]
 		reason = "ban name test"
 		client = self.getPlayerByClientNum(cli)
-		client['acctid'] = int(id)
 
 		statthread = threading.Thread(target=self.getAccountInfo, args=(cli,None), kwargs=kwargs)
 		statthread.start()	
 		
 		for each in self.banlistid:
-			if each == id:
+			if each == client['acctid']:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (cli, reason))
 				
