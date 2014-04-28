@@ -136,6 +136,9 @@ class admin(ConsolePlugin):
 		
 		for each in self.banlistname:
 			if each == client['name']:
+				print "client(name) ", client['name']
+				print "banned person: ", each
+				print "ban list ", self.banlistname
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
 
@@ -369,7 +372,8 @@ class admin(ConsolePlugin):
 				 % (kickclient['clinum'], reason))
 			self.banlist.append(kickclient['ip'])
 			self.banlistname.append(kickclient['name'])
-			#print self.banlistname
+			print self.banlistname
+			print kickclient['name']
 
 		if unban:
 			for index, namearg in self.banlistname:
