@@ -114,9 +114,9 @@ class admin(ConsolePlugin):
 	def onConnect(self, *args, **kwargs):
 		
 		id = args[0]
-		name = args[1]
 		ip = args[2]
 		
+		client = self.getPlayerByClientNum(id)
 		for each in self.ipban:
 			if each == ip:
 				reason = "You are banned from this server."
@@ -135,7 +135,7 @@ class admin(ConsolePlugin):
 					"Kick %s \"%s\"" % (id, reason))
 		
 		for each in self.banlistname:
-			if each == name:
+			if each == client['name']:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
 
