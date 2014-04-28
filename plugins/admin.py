@@ -116,6 +116,8 @@ class admin(ConsolePlugin):
 		id = args[0]
 		ip = args[2]
 		
+		client = self.getPlayerByClientNum(id)
+		
 		for each in self.ipban:
 			if each == ip:
 				reason = "You are banned from this server."
@@ -132,7 +134,12 @@ class admin(ConsolePlugin):
 			if each == ip:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
-
+		
+		for each in self.banlistid:
+			if each == client['acctid']:
+				kwargs['Broadcast'].broadcast(\
+					"Kick %s \"%s\"" % (id, reason))
+		
 		for client in self.playerlist:
 			if (client['clinum'] == id):
 				return
@@ -190,16 +197,10 @@ class admin(ConsolePlugin):
 
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
-		reason = "ban name test"
 		client = self.getPlayerByClientNum(cli)
 
 		statthread = threading.Thread(target=self.getAccountInfo, args=(cli,None), kwargs=kwargs)
 		statthread.start()	
-		
-		for each in self.banlistid:
-			if each == client['acctid']:
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (cli, reason))
 				
 
 		if self.isAdmin(client, **kwargs):
