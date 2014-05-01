@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.2"
+	VERSION = "0.0.3"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -97,7 +97,7 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
 		
-		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin %s. You can use ^rsb help ^y to know all the available commands." % (client['clinum'], self.VERSION))
+		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin %s. You can use ^rsb help ^y to know all the available commands." % (cli, self.VERSION))
 					
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
@@ -195,7 +195,7 @@ class sandbox(ConsolePlugin):
 		if buildspeed:
 			kwargs['Broadcast'].broadcast(\
 				"set Player_Conjurer_BuildingRepairRate %s;\
-				 set Player_Builder_BuildingRepairRate %s;"\
+				 set Player_Engineer_BuildingRepairRate %s;"\
 				 % (buildspeed.group(1), buildspeed.group(1)))
 			
 		if teamchange:
@@ -211,6 +211,8 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s All commands on the server are done through server chat."\
 				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb startgame ^w will start the game")
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveteamgold team amount^w. will give gold to a team."\
 				 % (client['clinum']))
@@ -239,11 +241,14 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb teamchange ^wwill allow switching team."\
+				"SendMessage %s ^rsb allowteamchange ^wwill allow switching team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb teamdiff ^wwill allow everyone to join in the same team."\
 				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb changepassword ^wwill change the server's password."\
+				% (client['clinum']))
 						
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
