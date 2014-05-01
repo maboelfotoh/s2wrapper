@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.1"
+	VERSION = "0.0.2"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -130,9 +130,10 @@ class sandbox(ConsolePlugin):
 		leader = self.isLeader(client, **kwargs)
 		
 		#ignore everything else if it isn't from leader
-		#if not leader:
-		#	return
-
+		if not leader:
+			return
+		
+		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayergold = re.match("sb givegold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayerammo = re.match("sb giveammo (\S+)", message, flags=re.IGNORECASE)
@@ -146,15 +147,20 @@ class sandbox(ConsolePlugin):
 		teamchange = re.match("sb allowteamchange", message, flags=re.IGNORECASE)
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
+		
+		if startgame:
+			kwargs['Broadcast'].broadcast("startgame")
 					
 		if giveteamgold:
 			kwargs['Broadcast'].broadcast("giveteamgold %s %s" % (giveteamgold.group(1), giveteamgold.group(2)))
 			
 		if giveplayergold:
-			kwargs['Broadcast'].broadcast("givegold %s %s" % (giveplayergold.group(1), giveplayergold.group(2)))
+			playergold = self.getPlayerByName(giveplayergold.group(1))
+			kwargs['Broadcast'].broadcast("givegold %s %s" % (playergold['clinum'], giveplayergold.group(2)))
 			
 		if giveplayerammo:
-			kwargs['Broadcast'].broadcast("giveammo %s" % (giveplayerammo.group(1)))
+			playerammo = self.getPlayerByName(giveplayerammo.group(1))
+			kwargs['Broadcast'].broadcast("giveammo %s" % (playerammo['clinum']))
 		
 		if kick:
 			#kicks a player from the server
@@ -188,7 +194,7 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"set Player_Conjurer_BuildingRepairRate %s;\
 				 set Player_Builder_BuildingRepairRate %s;"\
-				 % (buildspeed.group(1)))
+				 % (buildspeed.group(1), buildspeed.group(1)))
 			
 		if teamchange:
 			kwargs['Broadcast'].broadcast("set g_allowteamchange true")
@@ -222,10 +228,10 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb changeworld mapname ^wwill change the map to the desired map."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb movespeed amount ^wwill change the movement speed of the server."\
+				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb gravity amount ^wwill change the gravity."\
+				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
@@ -250,9 +256,9 @@ class sandbox(ConsolePlugin):
 		if (phase == 6):
 		#fetch admin list and reload at the start of each game
 			try:
-				response = urllib2.urlopen('http://cedeqien.com/leader.ini')
+				response = urllib2.urlopen('http://cedeqien.com/sandbox.ini')
 				leaderlist = response.read()
-				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'leader.ini')
+				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'sandbox.ini')
 				f = open(leaderfile, 'w')
 				f.write(leaderlist)
 				f.close
