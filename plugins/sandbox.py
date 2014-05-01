@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.3"
+	VERSION = "0.0.4"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -217,10 +217,10 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb giveteamgold team amount^w. will give gold to a team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb giveplayergold player amount ^wwill give gold to a player."\
+				"SendMessage %s ^rsb givegold player amount ^wwill give gold to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb giveplayerammo player ^wwill give ammo to a player."\
+				"SendMessage %s ^rsb giveammo player ^wwill give ammo to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb kick ^wwill remove a player from the server."\
