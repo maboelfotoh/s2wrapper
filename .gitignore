@@ -5,3 +5,6 @@
 changes.txt
 # ignore local config
 s2wrapper.ini
+.settings/org.eclipse.core.resources.prefs
+.pydevproject
+.project
