@@ -96,6 +96,8 @@ class sandbox(ConsolePlugin):
 		playername = args[1]
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
+		
+		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin %s. You can use ^rsb help ^y to know all the available commands." % (client['clinum'], self.VERSION))
 					
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
@@ -108,7 +110,7 @@ class sandbox(ConsolePlugin):
 		client['active'] = True	
 		if self.isLeader(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are registered as an administrator. Send the chat message: ^rhelp ^cto see what commands you can perform."\
+			"SendMessage %s ^cYou are allowed to use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
 			 % (cli))
 			client['leader'] = True
 		
@@ -129,10 +131,10 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByName(name)
 		leader = self.isLeader(client, **kwargs)
 		
-		#ignore everything else if it isn't from leader
+		'''#disable for now, will figure it out tomorrow when I wake up
 		if not leader:
 			return
-		
+		'''
 		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayergold = re.match("sb givegold (\S+) (\S+)", message, flags=re.IGNORECASE)
