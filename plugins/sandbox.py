@@ -97,7 +97,7 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
 		
-		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin %s. You can use ^rsb help ^y to know all the available commands." % (cli, self.VERSION))
+		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin. You can use ^rsb help ^y to know all the available commands." % (cli, self.VERSION))
 					
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
