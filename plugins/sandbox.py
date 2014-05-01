@@ -129,9 +129,9 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByName(name)
 		leader = self.isLeader(client, **kwargs)
 		
-		#ignore everything else if it isn't from admin
-		if not leader:
-			return
+		#ignore everything else if it isn't from leader
+		#if not leader:
+		#	return
 
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayergold = re.match("sb givegold (\S+) (\S+)", message, flags=re.IGNORECASE)
@@ -139,7 +139,7 @@ class sandbox(ConsolePlugin):
 		kick = re.match("sb kick (\S+)", message, flags=re.IGNORECASE)
 		slap = re.match("sb slap (\S+)", message, flags=re.IGNORECASE)
 		changeworld = re.match("sb changeworld (\S+)", message, flags=re.IGNORECASE)
-		help = re.match("help", message, flags=re.IGNORECASE)
+		help = re.match("sb help", message, flags=re.IGNORECASE)
 		movespeed = re.match("sb mod movespeed (\S+)", message, flags=re.IGNORECASE)
 		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
 		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
@@ -234,7 +234,7 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb teamchange ^wwill allow switching team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb teamdifference ^wwill allow everyone to join in the same team."\
+				"SendMessage %s ^rsb teamdiff ^wwill allow everyone to join in the same team."\
 				 % (client['clinum']))
 						
 	def onPhaseChange(self, *args, **kwargs):
