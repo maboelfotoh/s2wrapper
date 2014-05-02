@@ -20,7 +20,6 @@ class sandbox(ConsolePlugin):
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
-	CONFIG = None
 	
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
@@ -130,7 +129,11 @@ class sandbox(ConsolePlugin):
 		
 		client = self.getPlayerByName(name)
 		leader = self.isLeader(client, **kwargs)
-		
+		leadertest = re.match("sb leaderlist", message, flags=re.IGNORECASE)
+		if leadertest:
+			kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], self.leaderlist))
+			
+			
 		#disable for now, will figure it out tomorrow when I wake up
 		if not leader:
 			return
