@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.5"
+	VERSION = "0.0.6"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -96,7 +96,7 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
 		
-		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin. You can use ^rsb help ^y to know all the available commands." % (cli, self.VERSION))
+		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin. If you want sandbox rank in order to test out the features, pm gggggggg on ps2." % (cli, self.VERSION))
 					
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
@@ -109,7 +109,7 @@ class sandbox(ConsolePlugin):
 		client['active'] = True	
 		if self.isLeader(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are allowed to use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
+			"SendMessage %s ^cYou are registered as a leader. You can now use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
 			 % (cli))
 			client['leader'] = True
 		
@@ -138,6 +138,8 @@ class sandbox(ConsolePlugin):
 		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayergold = re.match("sb givegold (\S+) (\S+)", message, flags=re.IGNORECASE)
+		giveplayersoul = re.match("sb givesoul (\S+) (\S+)", message, flags=re.IGNORECASE)
+		giveplayerexperience = re.match("sb giveexp (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayerammo = re.match("sb giveammo (\S+)", message, flags=re.IGNORECASE)
 		kick = re.match("sb kick (\S+)", message, flags=re.IGNORECASE)
 		slap = re.match("sb slap (\S+)", message, flags=re.IGNORECASE)
@@ -146,6 +148,7 @@ class sandbox(ConsolePlugin):
 		movespeed = re.match("sb mod movespeed (\S+)", message, flags=re.IGNORECASE)
 		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
 		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
+		jump = re.match("sb mod jump (\S+)", message, flags=re.IGNORECASE)
 		teamchange = re.match("sb allowteamchange", message, flags=re.IGNORECASE)
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
@@ -163,6 +166,14 @@ class sandbox(ConsolePlugin):
 		if giveplayerammo:
 			playerammo = self.getPlayerByName(giveplayerammo.group(1))
 			kwargs['Broadcast'].broadcast("giveammo %s" % (playerammo['clinum']))
+
+		if giveplayersoul:
+			playersoul = self.getPlayerByName(giveplayersoul.group(1))
+			kwargs['Broadcast'].broadcast("givesoul %s %s" % (playersoul['clinum'], giveplayersoul.group(2)))
+			
+		if giveplayerexperience:
+			playerexperience = self.getPlayerByName(giveplayerexperience.group(1))
+			kwargs['Broadcast'].broadcast("giveexperience %s %s" % (playerexperience['clinum'], giveplayerexperience.group(2)))
 		
 		if kick:
 			#kicks a player from the server
@@ -188,6 +199,9 @@ class sandbox(ConsolePlugin):
 		
 		if movespeed:
 			kwargs['Broadcast'].broadcast("set p_speed %s" % (movespeed.group(1)))
+		
+		if jump:
+			kwargs['Broadcast'].broadcast("set p_jump %s" % (jump.group(1)))
 			
 		if gravity:
 			kwargs['Broadcast'].broadcast("set p_gravity %s" % (gravity.group(1)))
@@ -221,6 +235,12 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb givegold player amount ^wwill give gold to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb givesoul player amount ^wwill give souls to a player."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb giveexperience player amount ^wwill give experience to a player."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveammo player ^wwill give ammo to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
@@ -237,6 +257,9 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
@@ -262,7 +285,7 @@ class sandbox(ConsolePlugin):
 				each['commander'] = False
 				
 		if (phase == 6):
-		#fetch admin list and reload at the start of each game
+		#fetch leader list and reload at the start of each game
 			try:
 				response = urllib2.urlopen('http://cedeqien.com/sandbox.ini')
 				leaderlist = response.read()
