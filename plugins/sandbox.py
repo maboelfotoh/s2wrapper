@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.4"
+	VERSION = "0.0.5"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -27,7 +27,7 @@ class sandbox(ConsolePlugin):
 		self.CONFIG = config
 		ini = ConfigParser.ConfigParser()
 		ini.read(config)
-		for (name, value) in ini.items('sandbox'):
+		for (name, value) in ini.items('sandboxs'):
 			self.leaderlist.append({'name': name, 'level' : value})
 		pass
 	
@@ -37,7 +37,7 @@ class sandbox(ConsolePlugin):
 		ini = ConfigParser.ConfigParser()
 		ini.read(self.CONFIG)
 
-		for (name, value) in ini.items('sandbox'):
+		for (name, value) in ini.items('sandboxs'):
 			self.leaderlist.append({'name': name, 'level' : value})
 
 	def reload_plugins(self):
@@ -131,10 +131,10 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByName(name)
 		leader = self.isLeader(client, **kwargs)
 		
-		'''#disable for now, will figure it out tomorrow when I wake up
+		#disable for now, will figure it out tomorrow when I wake up
 		if not leader:
 			return
-		'''
+		
 		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayergold = re.match("sb givegold (\S+) (\S+)", message, flags=re.IGNORECASE)
@@ -212,7 +212,8 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s All commands on the server are done through server chat."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb startgame ^w will start the game")
+				"SendMessage %s ^rsb startgame ^w will start the game"\
+				% (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveteamgold team amount^w. will give gold to a team."\
 				 % (client['clinum']))
@@ -273,3 +274,25 @@ class sandbox(ConsolePlugin):
 				self.onPluginLoad(leaderfile)
 			except:
 				return
+				
+	def onListClients(self, *args, **kwargs):
+		clinum = int(args[0])
+		name = args[2]
+		ip = args[1]
+		
+
+		client = self.getPlayerByName(name)
+		if not client:
+		#if a player is missing from the list this will put them as an active player and get stats
+		#usually used when reloading plugin during a game
+			acct = self.ms.getAccount(name)
+			acctid = acct[name]
+			self.onConnect(clinum, 0000, ip, 0000, **kwargs)
+			self.onSetName(clinum, name, **kwargs)
+			self.onAccountId(clinum, acctid, **kwargs)
+			client = self.getPlayerByName(name)
+			
+		client['active'] = True
+		kwargs['Broadcast'].broadcast(\
+		"echo CLIENT %s is on TEAM #GetTeam(|#GetIndexFromClientNum(%s)|#)#"\
+		 % (client['clinum'], client['clinum']))
