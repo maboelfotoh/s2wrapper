@@ -117,7 +117,7 @@ class sandbox(ConsolePlugin):
 		leader = False
 		
 		for each in self.leaderlist:
-			if client['name'].lower() == each:
+			if client['name'].lower() == each['name']:
 				leader = True
 		
 		return leader
@@ -129,9 +129,6 @@ class sandbox(ConsolePlugin):
 		
 		client = self.getPlayerByName(name)
 		leader = self.isLeader(client, **kwargs)
-		leadertest = re.match("sb leaderlist", message, flags=re.IGNORECASE)
-		if leadertest:
-			kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], self.leaderlist))
 			
 			
 		#disable for now, will figure it out tomorrow when I wake up
