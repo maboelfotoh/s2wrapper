@@ -154,6 +154,11 @@ class admin(ConsolePlugin):
 					 'f_req' : 0,\
 					 'l_req' : 0})
 		
+		for banned in self.banlistname:
+		 	for player in self.playerlist:
+					if banned == player['name']:
+						kwargs['Broadcast'].broadcast(\
+								"Kick %s \"%s\"" % (id, reason))
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -186,12 +191,6 @@ class admin(ConsolePlugin):
  		if karma < 0:
  			kwargs['Broadcast'].broadcast(\
  			"set _karmaflag%s 1" % (client['clinum']))
- 			
- 			
- 		for each in self.banlistname:
-			if each == client['name']:
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (id, reason))
 				
 		#If client has disconnected, give them their gold back
 		self.giveGold(False, client, **kwargs)
