@@ -128,6 +128,7 @@ class admin(ConsolePlugin):
 				return
 
 		reason = "An administrator has removed you from this server. You may rejoin the server after the current game ends."
+		reason2 = "name ban"
 		
 		for each in self.banlist:
 			if each == ip:
@@ -157,7 +158,7 @@ class admin(ConsolePlugin):
 		for each in self.banlistname:
 			if each == client['name']:
 				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (id, reason))
+					"Kick %s \"%s\"" % (id, reason2))
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -370,7 +371,7 @@ class admin(ConsolePlugin):
 			self.banlist.append(kickclient['ip'])
 			self.banlistname.append(kickclient['name'])
 			print self.banlistname
-			print kickclient['name']
+			print self.banlist
 
 		if unban:
 			unbanclient = self.getPlayerByName(unban.group(1))
