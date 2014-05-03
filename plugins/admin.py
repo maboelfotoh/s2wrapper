@@ -133,14 +133,6 @@ class admin(ConsolePlugin):
 			if each == ip:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
-		
-		for each in self.banlistname:
-			if each == client['name']:
-				print "client(name) ", client['name']
-				print "banned person: ", each
-				print "ban list ", self.banlistname
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (id, reason))
 
 		for client in self.playerlist:
 			if (client['clinum'] == id):
@@ -174,6 +166,12 @@ class admin(ConsolePlugin):
 		playername = args[1]
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
+		reason = "name ban success"
+		
+		for each in self.banlistname:
+			if each == client['name']:
+				kwargs['Broadcast'].broadcast(\
+					"Kick %s \"%s\"" % (id, reason))
 
 	def getAccountInfo(self, *args, **kwargs):
 		client = self.getPlayerByClientNum(args[0])
@@ -376,8 +374,9 @@ class admin(ConsolePlugin):
 			print kickclient['name']
 
 		if unban:
+			unbanclient = self.getPlayerByName(unban.group(1))
 			for index, namearg in self.banlistname:
-				if namearg == name:
+				if namearg == unbanclient['name']:
 					del self.banlistname[index]
 					del self.banlist[index]
 		

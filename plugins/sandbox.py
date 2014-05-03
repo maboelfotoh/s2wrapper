@@ -173,7 +173,7 @@ class sandbox(ConsolePlugin):
 			
 		if giveplayerexperience:
 			playerexperience = self.getPlayerByName(giveplayerexperience.group(1))
-			kwargs['Broadcast'].broadcast("giveexperience %s %s" % (playerexperience['clinum'], giveplayerexperience.group(2)))
+			kwargs['Broadcast'].broadcast("giveexp %s %s" % (playerexperience['clinum'], giveplayerexperience.group(2)))
 		
 		if kick:
 			#kicks a player from the server
