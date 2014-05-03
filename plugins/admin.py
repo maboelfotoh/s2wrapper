@@ -115,6 +115,7 @@ class admin(ConsolePlugin):
 		
 		id = args[0]
 		ip = args[2]
+		client = self.getPlayerByClientNum(id)
 		
 		for each in self.ipban:
 			if each == ip:
@@ -133,6 +134,11 @@ class admin(ConsolePlugin):
 			if each == ip:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
+				
+		for banned in self.banlistname:
+			if banned == client['name']:
+				kwargs['Broadcast'].broadcast(\
+						"Kick %s \"%s\"" % (id, reason))
 
 		for client in self.playerlist:
 			if (client['clinum'] == id):
@@ -153,12 +159,7 @@ class admin(ConsolePlugin):
 					 'req' : 0,\
 					 'f_req' : 0,\
 					 'l_req' : 0})
-		
-		for banned in self.banlistname:
-		 	for player in self.playerlist:
-					if banned == player['name']:
-						kwargs['Broadcast'].broadcast(\
-								"Kick %s \"%s\"" % (id, reason))
+
 	
 	def onDisconnect(self, *args, **kwargs):
 		
