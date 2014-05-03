@@ -153,6 +153,11 @@ class admin(ConsolePlugin):
 					 'req' : 0,\
 					 'f_req' : 0,\
 					 'l_req' : 0})
+		
+		for each in self.banlistname:
+			if each == client['name']:
+				kwargs['Broadcast'].broadcast(\
+					"Kick %s \"%s\"" % (id, reason))
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -166,12 +171,6 @@ class admin(ConsolePlugin):
 		playername = args[1]
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
-		reason = "name ban success"
-		
-		for each in self.banlistname:
-			if each == client['name']:
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (id, reason))
 
 	def getAccountInfo(self, *args, **kwargs):
 		client = self.getPlayerByClientNum(args[0])
