@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.6"
+	VERSION = "0.0.7"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -145,6 +145,7 @@ class sandbox(ConsolePlugin):
 		slap = re.match("sb slap (\S+)", message, flags=re.IGNORECASE)
 		changeworld = re.match("sb changeworld (\S+)", message, flags=re.IGNORECASE)
 		help = re.match("sb help", message, flags=re.IGNORECASE)
+		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
 		movespeed = re.match("sb mod movespeed (\S+)", message, flags=re.IGNORECASE)
 		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
 		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
@@ -152,6 +153,8 @@ class sandbox(ConsolePlugin):
 		teamchange = re.match("sb allowteamchange", message, flags=re.IGNORECASE)
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
+		swap = re.match("sb swap (\S+)", message, flags=re.IGNORECASE)
+		spec = re.match("sb spec (\S+)", message, flags=re.IGNORECASE)
 		
 		if startgame:
 			kwargs['Broadcast'].broadcast("startgame")
@@ -220,10 +223,35 @@ class sandbox(ConsolePlugin):
 			
 		if changepassword:
 			kwargs['Broadcast'].broadcast("set svr_connectpass %s" % (changepassword.group(1)))
-
+			
+		if spec:
+			specplayer = self.getPlayerByName(spec.group(1))
+			specteam = 0
+			kwargs['Broadcast'].broadcast(\
+				"SetTeam #GetIndexFromClientNum(%s)# %s"\
+				% (specplayer['clinum'], specteam))
+				
+		if swap:
+			#swap a player to a different team
+			swapplayer = self.getPlayerByName(swap.group(1))
+			newteam = 0
+			team = swapplayer['team']
+			if team == 1:
+				newteam = 2
+			if team == 2:
+				newteam = 1
+			if newteam == 0:
+				return
+			kwargs['Broadcast'].broadcast(\
+				"SetTeam #GetIndexFromClientNum(%s)# %s"\
+				 % (swapplayer['clinum'], newteam))
+			
 		if help:
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s All commands on the server are done through server chat."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb modhelp ^w for more info about the sb mod commands."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb startgame ^w will start the game"\
@@ -253,18 +281,6 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb changeworld mapname ^wwill change the map to the desired map."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb allowteamchange ^wwill allow switching team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
@@ -273,6 +289,26 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb changepassword ^wwill change the server's password."\
 				% (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb spec playername ^wwill move a specific player to spec team."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb swap playername ^wwill move a specific player to another team."\
+				 % (client['clinum']))
+			
+		if modhelp:
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
+				 % (client['clinum']))			
 						
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
