@@ -180,7 +180,6 @@ class admin(ConsolePlugin):
 		level = int(stats['level'])
 		sf = int(stats['sf'])
 		karma = int(stats['karma'])
-		reason = "yolo"
 					
 		client['sf'] = sf
 		client['level'] = level
