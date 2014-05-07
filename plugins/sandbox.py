@@ -132,8 +132,8 @@ class sandbox(ConsolePlugin):
 			
 			
 		#disable for now, will figure it out tomorrow when I wake up
-		if not leader:
-			return
+		#if not leader:
+			#return
 		
 		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
