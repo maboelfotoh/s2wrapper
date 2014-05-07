@@ -17,7 +17,7 @@ import subprocess
 import glob
 
 class mod(ConsolePlugin):
-	VERSION = "0.0.1"
+	VERSION = "0.0.2"
 	playerlist = []
 	superlist = []
 	modlist = []
@@ -48,7 +48,7 @@ class mod(ConsolePlugin):
 		ini = ConfigParser.ConfigParser()
 		ini.read(config)
 		for name in ini.options('plugins'):
-			if name == 'sandbox':
+			if name == 'mod':
 				PluginsManager.reload(name)
 				continue
 			if ini.getboolean('plugins', name):
@@ -130,7 +130,7 @@ class mod(ConsolePlugin):
 	
 	def modreset(self, **kwargs):
 		self.modlist = []
-		with open("../mod/reset.txt", 'r') as original:
+		with open("../mods/reset.txt", 'r') as original:
 			for line in original:
 				kwargs['Broadcast'].broadcast("%s" % (line))
 		original.close()		
@@ -153,12 +153,15 @@ class mod(ConsolePlugin):
 		modreset = re.match("mod reset", message, flags=re.IGNORECASE)
 		
 		if modenable:
-			modName = "../mod/" + modenable.group(1) + ".txt"
+			modName = "../mods/" + modenable.group(1) + ".txt"
 			self.modlist.append(modenable.group(1))
-			with open(modName, 'r') as modfile:
-				for line in modfile:
-					kwargs['Broadcast'].broadcast("%s" % (line))
-			modfile.close()
+			if not os.path.isfile(modName):
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (modenable.group(1)))
+			else:
+				with open(modName, 'r') as modfile:
+					for line in modfile:
+						kwargs['Broadcast'].broadcast("%s" % (line))
+				modfile.close()
 			kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
 					
 		if modactive:
@@ -171,7 +174,7 @@ class mod(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
 		if modindirectory:
-			modindir = os.listdir("../mod/")
+			modindir = os.listdir("../mods/")
 			for each in modindir:
 				kwargs['Broadcast'].broadcast("%s %s" % (client['clinum'], each))
 						
