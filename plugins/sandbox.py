@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.4"
+	VERSION = "0.1.5"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -158,6 +158,7 @@ class sandbox(ConsolePlugin):
 		changeworld = re.match("sb changeworld (\S+)", message, flags=re.IGNORECASE)
 		help = re.match("sb help", message, flags=re.IGNORECASE)
 		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
+		playerhelp = re.match("sb player help", message, flags=re.IGNORECASE)
 		movespeed = re.match("sb mod movespeed (\S+)", message, flags=re.IGNORECASE)
 		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
 		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
@@ -290,13 +291,50 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s All commands on the server are done through server chat."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb modhelp ^w for more info about the sb mod commands."\
+				"SendMessage %s ^rsb mod help ^w for more info about the sb mod commands."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				 "SendMessage %s ^rsb player help ^w for more info about command's that affect players."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb startgame ^w will start the game"\
 				% (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveteamgold team amount^w. will give gold to a team."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb changeworld mapname ^wwill change the map to the desired map."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb allowteamchange ^wwill allow switching team."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb teamdiff ^wwill allow everyone to join in the same team."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb changepassword ^wwill change the server's password."\
+				% (client['clinum']))
+			
+		if modhelp:
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
+				 % (client['clinum']))
+			
+		if playerhelp:
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb spec playername ^wwill move a specific player to spec team."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb swap playername ^wwill move a specific player to another team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb givegold player amount ^wwill give gold to a player."\
@@ -331,39 +369,8 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb slap playername ^wwill move the player. Use to get them off of structures if they are exploiting."\
 				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb changeworld mapname ^wwill change the map to the desired map."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb allowteamchange ^wwill allow switching team."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb teamdiff ^wwill allow everyone to join in the same team."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb changepassword ^wwill change the server's password."\
-				% (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb spec playername ^wwill move a specific player to spec team."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb swap playername ^wwill move a specific player to another team."\
-				 % (client['clinum']))
 			
-		if modhelp:
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb buildspeed amount ^wwill change the build speed."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod gravity amount ^wwill change the gravity."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
-				 % (client['clinum']))
-
+			
 		if mmhelp:
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rmm enable modname ^wwill enable a mod."\
@@ -380,16 +387,16 @@ class sandbox(ConsolePlugin):
 			
 				
 		if modenable:
-			modName = "./plugins/mods/" + modenable.group(1)
-			#if not os.path.isfile(modName):
-				#kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
-			#else:
-			with open(modName, 'r') as modfile:
-				for line in modfile:
-					kwargs['Broadcast'].broadcast("%s" % (line))
-			self.modlist.append(modenable.group(1))
-			kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
-			modfile.close()
+			modName = "./plugins/mods/" + modenable.group(1) + ".txt"
+			if os.path.isfile(modName):
+				with open(modName, 'r') as modfile:
+					for line in modfile:
+						kwargs['Broadcast'].broadcast("%s" % (line))
+				self.modlist.append(modenable.group(1))
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
+				modfile.close()
+			else:
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
 					
 		if modactive:
 			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
