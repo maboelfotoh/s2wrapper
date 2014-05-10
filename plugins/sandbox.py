@@ -55,6 +55,7 @@ class sandbox(ConsolePlugin):
 	def onStartServer(self, *args, **kwargs):
 				
 		self.playerlist = []
+		self.modreset()
 
 	def getPlayerByClientNum(self, cli):
 
@@ -112,6 +113,13 @@ class sandbox(ConsolePlugin):
 			"SendMessage %s ^cYou are registered as a leader. You can now use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
 			 % (cli))
 			client['leader'] = True
+			
+	def modreset(self, **kwargs):
+		self.modlist = []
+		with open("../mods/reset.txt", 'r') as original:
+			for line in original:
+				kwargs['Broadcast'].broadcast("%s" % (line))
+		original.close()		
 		
 	def isLeader(self, client, **kwargs):
 		leader = False
@@ -155,6 +163,10 @@ class sandbox(ConsolePlugin):
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match("sb swap (\S+)", message, flags=re.IGNORECASE)
 		spec = re.match("sb spec (\S+)", message, flags=re.IGNORECASE)
+		modenable = re.match("mod enable (\S+)", message, flags=re.IGNORECASE)
+		modactive = re.match("mod get active", message, flags=re.IGNORECASE)
+		modindirectory = re.match("mod get list", message, flags=re.IGNORECASE)
+		modreset = re.match("mod reset", message, flags=re.IGNORECASE)
 		
 		if startgame:
 			kwargs['Broadcast'].broadcast("startgame")
@@ -308,14 +320,41 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
-				 % (client['clinum']))			
+				 % (client['clinum']))
+		
+		if modenable:
+			modName = "../mods/" + modenable.group(1) + ".txt"
+			self.modlist.append(modenable.group(1))
+			if not os.path.isfile(modName):
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (modenable.group(1)))
+			else:
+				with open(modName, 'r') as modfile:
+					for line in modfile:
+						kwargs['Broadcast'].broadcast("%s" % (line))
+				modfile.close()
+			kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
+					
+		if modactive:
+			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
+			for element in modactive:
+				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
+		
+		if modreset:
+			self.modreset()
+			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
+			
+		if modindirectory:
+			modindir = os.listdir("../mods/")
+			for each in modindir:
+				kwargs['Broadcast'].broadcast("%s %s" % (client['clinum'], each))			
 						
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
 		self.PHASE = phase
 
 		if (phase == 7):
-			self.banlist = []	
+			self.banlist = []
+			self.modreset()	
 			for each in self.playerlist:
 				each['team'] = 0
 				each['commander'] = False
