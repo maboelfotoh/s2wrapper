@@ -1,0 +1,4 @@
+Set Team_Human_OfficerSkill ""
+Set Team_Beast_OfficerSkill ""
+Set State_OfficerAura_HealthRegenMult "2.0000"
+Set State_OfficerAura_ManaRegenMult "2.0000"
