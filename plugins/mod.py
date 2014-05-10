@@ -144,8 +144,8 @@ class mod(ConsolePlugin):
 		superuser = self.isSuperUser(client, **kwargs)
 			
 			
-		if not superuser:
-			return
+		#if not superuser:
+			#return
 		
 		modenable = re.match("mod enable (\S+)", message, flags=re.IGNORECASE)
 		modactive = re.match("mod get active", message, flags=re.IGNORECASE)
