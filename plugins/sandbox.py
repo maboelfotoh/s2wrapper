@@ -116,7 +116,7 @@ class sandbox(ConsolePlugin):
 			
 	def modreset(self, **kwargs):
 		self.modlist = []
-		with open("/mods/reset.txt", 'r') as original:
+		with open("reset.txt", 'r') as original:
 			for line in original:
 				kwargs['Broadcast'].broadcast("%s" % (line))
 		original.close()		
@@ -323,10 +323,10 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 		
 		if modenable:
-			modName = "/mods/" + modenable.group(1) + ".txt"
+			modName = "" + modenable.group(1) + ".txt"
 			self.modlist.append(modenable.group(1))
 			if not os.path.isfile(modName):
-				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (modenable.group(1)))
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (client['clinum'], modenable.group(1)))
 			else:
 				with open(modName, 'r') as modfile:
 					for line in modfile:
@@ -344,7 +344,7 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
 		if modindirectory:
-			modindir = os.listdir("/mods/")
+			modindir = os.listdir("./")
 			for each in modindir:
 				kwargs['Broadcast'].broadcast("%s %s" % (client['clinum'], each))			
 						
