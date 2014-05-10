@@ -314,6 +314,15 @@ class sandbox(ConsolePlugin):
 					"SendMessage %s ^rsb resetattributes ^wwill reset all attributes of a player."\
 					% (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
+					"SendMessage %s ^rsb refillhealth ^wwill refill a player health."\
+					% (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+					"SendMessage %s ^rsb refillmana ^wwill refill a player mana."\
+					% (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+					"SendMessage %s ^rsb refillstamina ^wwill refill a player stamina."\
+					% (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveammo player ^wwill give ammo to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
