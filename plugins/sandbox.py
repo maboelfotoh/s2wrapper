@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.0"
+	VERSION = "0.1.1"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -97,7 +97,7 @@ class sandbox(ConsolePlugin):
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
 		
-		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. It's currently running the version %s of the plugin. If you want sandbox rank in order to test out the features, pm gggggggg on ps2." % (cli, self.VERSION))
+		kwargs['Broadcast'].broadcast("SendMessage %s ^yThis server is running the Sandbox plugin by GGGGGGGG. Version : %s. Mods currently active: ^r%" % (cli, self.VERSION, self.modlist))
 					
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
