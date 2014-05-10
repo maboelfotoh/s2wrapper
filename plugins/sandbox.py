@@ -323,16 +323,16 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 		
 		if modenable:
-			modName = "" + modenable.group(1) + ".txt"
-			self.modlist.append(modenable.group(1))
+			modName = modenable.group(1) + ".txt"
 			if not os.path.isfile(modName):
 				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (client['clinum'], modenable.group(1)))
 			else:
 				with open(modName, 'r') as modfile:
 					for line in modfile:
 						kwargs['Broadcast'].broadcast("%s" % (line))
+				self.modlist.append(modenable.group(1))
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
 				modfile.close()
-			kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
 					
 		if modactive:
 			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
@@ -346,7 +346,7 @@ class sandbox(ConsolePlugin):
 		if modindirectory:
 			modindir = os.listdir("./")
 			for each in modindir:
-				kwargs['Broadcast'].broadcast("%s %s" % (client['clinum'], each))			
+				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], each))			
 						
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
