@@ -330,13 +330,13 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rmm enable modname ^wwill enable a mod."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mm get active ^wwill show all active mods."\
+				"SendMessage %s ^rmm get active ^wwill show all active mods."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mm get list ^wwill show all the possible mods."\
+				"SendMessage %s ^rmm get list ^wwill show all the possible mods."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mm reset ^wwill reset everything to its default settings."\
+				"SendMessage %s ^rmm reset ^wwill reset everything to its default settings."\
 				 % (client['clinum']))		
 			
 				
