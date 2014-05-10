@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.1"
+	VERSION = "0.1.3"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -139,9 +139,8 @@ class sandbox(ConsolePlugin):
 		leader = self.isLeader(client, **kwargs)
 			
 			
-		#disable for now, will figure it out tomorrow when I wake up
-		#if not leader:
-			#return
+		if not leader:
+			return
 		
 		startgame = re.match("sb startgame", message, flags=re.IGNORECASE)
 		giveteamgold = re.match("sb giveteamgold (\S+) (\S+)", message, flags=re.IGNORECASE)
@@ -149,6 +148,11 @@ class sandbox(ConsolePlugin):
 		giveplayersoul = re.match("sb givesoul (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayerexperience = re.match("sb giveexp (\S+) (\S+)", message, flags=re.IGNORECASE)
 		giveplayerammo = re.match("sb giveammo (\S+)", message, flags=re.IGNORECASE)
+		resetattributes = re.match("sb resetattributes (\S+)", message, flags=re.IGNORECASE)
+		resetexp = re.match("sb resetexp (\S+)", message, flags=re.IGNORECASE)
+		refillhealth = re.match("sb refillhealth (\S+)", message, flags=re.IGNORECASE)
+		refillmana = re.match("sb refillmana (\S+)", message, flags=re.IGNORECASE)
+		refillstamina = re.match("sb refillstamina (\S+)", message, flags=re.IGNORECASE)
 		kick = re.match("sb kick (\S+)", message, flags=re.IGNORECASE)
 		slap = re.match("sb slap (\S+)", message, flags=re.IGNORECASE)
 		changeworld = re.match("sb changeworld (\S+)", message, flags=re.IGNORECASE)
@@ -261,6 +265,26 @@ class sandbox(ConsolePlugin):
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
 			
+		if resetattributes:
+			resetattributesplayer = self.getPlayerByName(resetattributes.group(1))
+			kwargs['Broadcast'].broadcast("ResetAttributes #GetIndexFromClientNum(%s)#" % (resetattributesplayer['clinum']))
+			
+		if resetexp:
+			resetexpplayer = self.getPlayerByName(resetexp.group(1))
+			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (resetexpplayer['clinum']))
+			
+		if refillhealth:
+			refillhealthplayer = self.getPlayerByName(refillhealth.group(1))
+			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillhealthplayer['clinum']))
+			
+		if refillmana:
+			refillmanaplayer = self.getPlayerByName(refillmana.group(1))
+			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillmanaplayer['clinum']))
+			
+		if refillstamina:
+			refillstaminaplayer = self.getPlayerByName(refillstamina.group(1))
+			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillstaminaplayer['clinum']))
+						
 		if help:
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s All commands on the server are done through server chat."\
@@ -359,7 +383,7 @@ class sandbox(ConsolePlugin):
 		
 		if modreset:
 			self.modreset()
-			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
+			#kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
 		if modindirectory:
 			modindir = os.listdir("./plugins/mods/")
