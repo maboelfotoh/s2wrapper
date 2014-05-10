@@ -114,7 +114,7 @@ class sandbox(ConsolePlugin):
 			 % (cli))
 			client['leader'] = True
 			
-	def modreset(self, **kwargs):
+	def modreset(self, *args, **kwargs):
 		self.modlist = []
 		with open("./plugins/mods/reset.txt", 'r') as original:
 			for line in original:
