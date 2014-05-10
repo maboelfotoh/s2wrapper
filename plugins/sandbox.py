@@ -324,15 +324,15 @@ class sandbox(ConsolePlugin):
 		
 		if modenable:
 			modName = modenable.group(1)
-			if not os.path.isfile(modName):
-				kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
-			else:
-				with open(modName, 'r') as modfile:
-					for line in modfile:
-						kwargs['Broadcast'].broadcast("%s" % (line))
-				self.modlist.append(modenable.group(1))
-				kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
-				modfile.close()
+			#if not os.path.isfile(modName):
+				#kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
+			#else:
+			with open(modName, 'r') as modfile:
+				for line in modfile:
+					kwargs['Broadcast'].broadcast("%s" % (line))
+			self.modlist.append(modenable.group(1))
+			kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
+			modfile.close()
 					
 		if modactive:
 			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
