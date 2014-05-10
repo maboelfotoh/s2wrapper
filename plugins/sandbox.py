@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.0.7"
+	VERSION = "0.1.0"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -163,10 +163,13 @@ class sandbox(ConsolePlugin):
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match("sb swap (\S+)", message, flags=re.IGNORECASE)
 		spec = re.match("sb spec (\S+)", message, flags=re.IGNORECASE)
-		modenable = re.match("mod enable (\S+)", message, flags=re.IGNORECASE)
-		modactive = re.match("mod get active", message, flags=re.IGNORECASE)
-		modindirectory = re.match("mod get list", message, flags=re.IGNORECASE)
-		modreset = re.match("mod reset", message, flags=re.IGNORECASE)
+		
+		
+		modenable = re.match("mm enable (\S+)", message, flags=re.IGNORECASE)
+		modactive = re.match("mm get active", message, flags=re.IGNORECASE)
+		modindirectory = re.match("mm get list", message, flags=re.IGNORECASE)
+		modreset = re.match("mm reset", message, flags=re.IGNORECASE)
+		mmhelp = re.match("mm help", message, flags=re.IGNORECASE)
 		
 		if startgame:
 			kwargs['Broadcast'].broadcast("startgame")
@@ -321,7 +324,22 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
 				 % (client['clinum']))
-		
+
+		if mmhelp:
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm enable modname ^wwill enable a mod."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mm get active ^wwill show all active mods."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mm get list ^wwill show all the possible mods."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb mm reset ^wwill reset everything to its default settings."\
+				 % (client['clinum']))		
+			
+				
 		if modenable:
 			modName = "./plugins/mods/" + modenable.group(1)
 			#if not os.path.isfile(modName):
