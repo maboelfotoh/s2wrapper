@@ -16,7 +16,7 @@ import urllib2
 import subprocess
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.3"
+	VERSION = "0.1.4"
 	playerlist = []
 	leaderlist = []
 	PHASE = 0
@@ -271,19 +271,19 @@ class sandbox(ConsolePlugin):
 			
 		if resetexp:
 			resetexpplayer = self.getPlayerByName(resetexp.group(1))
-			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (resetexpplayer['clinum']))
+			kwargs['Broadcast'].broadcast("ResetExp %s" % (resetexpplayer['clinum']))
 			
 		if refillhealth:
 			refillhealthplayer = self.getPlayerByName(refillhealth.group(1))
-			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillhealthplayer['clinum']))
+			kwargs['Broadcast'].broadcast("RefillHealth #GetIndexFromClientNum(%s)#" % (refillhealthplayer['clinum']))
 			
 		if refillmana:
 			refillmanaplayer = self.getPlayerByName(refillmana.group(1))
-			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillmanaplayer['clinum']))
+			kwargs['Broadcast'].broadcast("RefillMana #GetIndexFromClientNum(%s)#" % (refillmanaplayer['clinum']))
 			
 		if refillstamina:
 			refillstaminaplayer = self.getPlayerByName(refillstamina.group(1))
-			kwargs['Broadcast'].broadcast("ResetExp #GetIndexFromClientNum(%s)#" % (refillstaminaplayer['clinum']))
+			kwargs['Broadcast'].broadcast("RefillStamina #GetIndexFromClientNum(%s)#" % (refillstaminaplayer['clinum']))
 						
 		if help:
 			kwargs['Broadcast'].broadcast(\
@@ -305,8 +305,14 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb givesoul player amount ^wwill give souls to a player."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb giveexperience player amount ^wwill give experience to a player."\
+				"SendMessage %s ^rsb giveexp player amount ^wwill give experience to a player."\
 				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				 "SendMessage %s ^rsb resetexp player ^wwill reset exp of a player."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+					"SendMessage %s ^rsb resetattributes ^wwill reset all attributes of a player."\
+					% (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb giveammo player ^wwill give ammo to a player."\
 				 % (client['clinum']))
