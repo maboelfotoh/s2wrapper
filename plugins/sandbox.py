@@ -323,9 +323,9 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 		
 		if modenable:
-			modName = modenable.group(1) + ".txt"
+			modName = modenable.group(1)
 			if not os.path.isfile(modName):
-				kwargs['Broadcast'].broadcast("SendMessage -1 %s %s does not exist." % (client['clinum'], modenable.group(1)))
+				kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
 			else:
 				with open(modName, 'r') as modfile:
 					for line in modfile:
