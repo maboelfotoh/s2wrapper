@@ -398,8 +398,11 @@ class sandbox(ConsolePlugin):
 					
 		if modactive:
 			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
-			for element in self.modlist:
-				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
+			if len(self.modlist) == 0:
+				kwargs['Broadcast'].broadcast("SendMessage %s None" % (client['clinum']))
+			else:
+				for element in self.modlist:
+					kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
 		
 		if modreset:
 			self.modlist = []
@@ -407,7 +410,7 @@ class sandbox(ConsolePlugin):
 				for line in original:
 					kwargs['Broadcast'].broadcast("%s" % (line))
 			original.close()	
-			#kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
+			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
 		if modindirectory:
 			modindir = os.listdir("./plugins/mods/")

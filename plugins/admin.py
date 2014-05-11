@@ -335,7 +335,7 @@ class admin(ConsolePlugin):
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		banlist = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
+		banlistcmd = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -456,7 +456,7 @@ class admin(ConsolePlugin):
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
 
-		if banlist:
+		if banlistcmd:
 			if len(self.banlistname) != 0: # check if banlist empty
 				kwargs['Broadcast'].broadcast("SendMessage %s Banlist:" % (client['clinum']))
 				for testname in self.banlistname:
