@@ -19,6 +19,7 @@ class sandbox(ConsolePlugin):
 	VERSION = "0.1.5"
 	playerlist = []
 	leaderlist = []
+	modlist = []
 	PHASE = 0
 	
 	def onPluginLoad(self, config):
@@ -55,7 +56,11 @@ class sandbox(ConsolePlugin):
 	def onStartServer(self, *args, **kwargs):
 				
 		self.playerlist = []
-		self.modreset()
+		self.modlist = []
+		with open("./plugins/mods/reset.txt", 'r') as original:
+			for line in original:
+				kwargs['Broadcast'].broadcast("%s" % (line))
+		original.close()	
 
 	def getPlayerByClientNum(self, cli):
 
@@ -113,13 +118,6 @@ class sandbox(ConsolePlugin):
 			"SendMessage %s ^cYou are registered as a leader. You can now use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
 			 % (cli))
 			client['leader'] = True
-			
-	def modreset(self, *args, **kwargs):
-		self.modlist = []
-		with open("./plugins/mods/reset.txt", 'r') as original:
-			for line in original:
-				kwargs['Broadcast'].broadcast("%s" % (line))
-		original.close()		
 		
 	def isLeader(self, client, **kwargs):
 		leader = False
@@ -404,7 +402,11 @@ class sandbox(ConsolePlugin):
 				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
 		
 		if modreset:
-			self.modreset()
+			self.modlist = []
+			with open("./plugins/mods/reset.txt", 'r') as original:
+				for line in original:
+					kwargs['Broadcast'].broadcast("%s" % (line))
+			original.close()	
 			#kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
 		if modindirectory:
@@ -418,7 +420,11 @@ class sandbox(ConsolePlugin):
 
 		if (phase == 7):
 			self.banlist = []
-			self.modreset()	
+			self.modlist = []
+			with open("./plugins/mods/reset.txt", 'r') as original:
+				for line in original:
+					kwargs['Broadcast'].broadcast("%s" % (line))
+			original.close()	
 			for each in self.playerlist:
 				each['team'] = 0
 				each['commander'] = False
