@@ -436,10 +436,15 @@ class sandbox(ConsolePlugin):
 		#fetch leader list and reload at the start of each game
 			try:
 				response = urllib2.urlopen('http://cedeqien.com/sandbox.ini')
+				response2 = urllib2.urlopen('http://playsavage2.com/admin.ini')
 				leaderlist = response.read()
+				adminlist = response2.read()
 				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'sandbox.ini')
 				f = open(leaderfile, 'w')
 				f.write(leaderlist)
+				f.close
+				f = open(leaderfile, 'a')
+				f.write(adminlist)
 				f.close
 				#reload the config file		
 				self.onPluginLoad(leaderfile)

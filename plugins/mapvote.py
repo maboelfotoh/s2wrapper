@@ -189,7 +189,7 @@ class mapvote(ConsolePlugin):
 		newmap = items[0][1]			
 		self.ChangeMap(newmap, **kwargs)
 
-	def ChangeMap(self, newmap, **kwargs):
+	def ChangeMap(self, newmap, *args, **kwargs):
 
 		status = 'official'
 
