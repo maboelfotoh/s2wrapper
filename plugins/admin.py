@@ -16,13 +16,14 @@ from numpy import median
 from random import choice
 import urllib2
 import subprocess
+from mapvote import mapvote
 
 class admin(ConsolePlugin):
-	VERSION = "1.5.4"
+	VERSION = "1.5.3"
 	playerlist = []
 	adminlist = []
 	banlist = []
-	banlistname = []
+	fullbanlist = []
 	ipban = []
 	itemlist = []
 	PHASE = 0
@@ -39,11 +40,15 @@ class admin(ConsolePlugin):
 		self.ms = MasterServer ()
 		self.CONFIG = config
 		ini = ConfigParser.ConfigParser()
+		banini = ConfigParser.ConfigParser ()
+		banconfig = os.path.dirname(config) + "/ban.ini"
+		banini.read (banconfig)
 		ini.read(config)
+		
 		
 		for (name, value) in ini.items('admin'):
 			self.adminlist.append({'name': name, 'level' : value})
-		for (name, value) in ini.items('ipban'):
+		for (name, value) in banini.items('ipban'):
 			self.ipban.append(name)	
 		
 		
@@ -56,9 +61,16 @@ class admin(ConsolePlugin):
                 ini = ConfigParser.ConfigParser()
                 ini.read(self.CONFIG)
 
+		banini = ConfigParser.ConfigParser ()
+		banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
+		banini.read (banconfig)
+
                 for (name, value) in ini.items('admin'):
                 	self.adminlist.append({'name': name, 'level' : value})
-                for (name, value) in ini.items('ipban'):
+
+                for (name, value) in banini.items('ban'):
+                	self.fullbanlist.append({'name': name, 'level' : value})
+                for (name, value) in banini.items('ipban'):
                 	self.ipban.append(name)	
 
 	def reload_plugins(self):
@@ -77,8 +89,7 @@ class admin(ConsolePlugin):
 	def onStartServer(self, *args, **kwargs):
 		kwargs['Broadcast'].broadcast("Set norunes 0")		
 		self.playerlist = []
-		self.banlist = []
-		self.banlistname = []
+		self.banlist = []	
 
 	def RegisterScripts(self, **kwargs):
 		#any extra scripts that need to go in can be done here
@@ -98,7 +109,7 @@ class admin(ConsolePlugin):
 				
 		kwargs['Broadcast'].broadcast("set con_showerr false; set con_showwarn false;")
 		kwargs['Broadcast'].broadcast("Set Entity_NpcController_Name \"S2WRAPPER\"")
-		kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set kid #GetScriptParam(clientid)#; set kcheck _karmaflag#kid#; if [kcheck > 0] clientexecscript clientdo #kid# cmd \\\"set voice_disabled true\\\"; echo\" spawn")
+		#kwargs['Broadcast'].broadcast("RegisterGlobalScript -1 \"set kid #GetScriptParam(clientid)#; set kcheck _karmaflag#kid#; if [kcheck > 0] clientexecscript clientdo #kid# cmd \\\"set voice_disabled true\\\"; echo\" spawn")
 	def getPlayerByClientNum(self, cli):
 
 		for client in self.playerlist:
@@ -115,7 +126,6 @@ class admin(ConsolePlugin):
 		
 		id = args[0]
 		ip = args[2]
-		client = self.getPlayerByClientNum(id)
 		
 		for each in self.ipban:
 			if each == ip:
@@ -128,20 +138,15 @@ class admin(ConsolePlugin):
 				return
 
 		reason = "An administrator has removed you from this server. You may rejoin the server after the current game ends."
-		reason2 = "name ban"
 		
 		for each in self.banlist:
 			if each == ip:
 				kwargs['Broadcast'].broadcast(\
 					"Kick %s \"%s\"" % (id, reason))
-				
-		for banned in self.banlistname:
-			if banned == client['name']:
-				kwargs['Broadcast'].broadcast(\
-						"Kick %s \"%s\"" % (id, reason))
 
 		for client in self.playerlist:
 			if (client['clinum'] == id):
+				client['ip'] = ip
 				return
 		
 		self.playerlist.append ({'clinum' : id,\
@@ -157,9 +162,9 @@ class admin(ConsolePlugin):
 					 'karma' : 0,\
 					 'commander' : False,\
 					 'req' : 0,\
+					 'flood' : None,\
 					 'f_req' : 0,\
 					 'l_req' : 0})
-
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -171,6 +176,10 @@ class admin(ConsolePlugin):
 		
 		cli = args[0]
 		playername = args[1]
+		if playername == "":
+			reason = "You dont seem to have a name, thats odd."
+			kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
+
 		client = self.getPlayerByClientNum(cli)
 		client ['name'] = playername
 
@@ -185,26 +194,32 @@ class admin(ConsolePlugin):
 		client['level'] = level
 		client['karma'] = karma
 		client['active'] = True
-		kwargs['Broadcast'].broadcast(\
- 		"clientexecscript %s clientdo cmd \"set _vr #StringLength(|#GetCheckSum(cgame.dll)|#)#; if [_vr > 0] \\\"SendScriptInput what DLL value #getchecksum(cgame.dll)#\\\"; Else \\\"SendScriptInput what DLL value NONE\\\"\"" % (client['clinum']))
+		#kwargs['Broadcast'].broadcast(\
+ 		#"clientexecscript %s clientdo cmd \"set _vr #StringLength(|#GetCheckSum(cgame.dll)|#)#; if [_vr > 0] \\\"SendScriptInput what DLL value #getchecksum(cgame.dll)#\\\"; Else \\\"SendScriptInput what DLL value NONE\\\"\"" % (client['clinum']))
  		
  		if karma < 0:
  			kwargs['Broadcast'].broadcast(\
  			"set _karmaflag%s 1" % (client['clinum']))
-				
+ 			
 		#If client has disconnected, give them their gold back
 		self.giveGold(False, client, **kwargs)
 		
 
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
+		
 		id = args[1]
+		if id == 836219:
+			kwargs['Broadcast'].broadcast("kick %s " % (cli))
 		client = self.getPlayerByClientNum(cli)
 		client['acctid'] = int(id)
 
 		statthread = threading.Thread(target=self.getAccountInfo, args=(cli,None), kwargs=kwargs)
-		statthread.start()	
-
+		statthread.start()
+			
+		if self.isBanned(client, **kwargs):
+			kwargs['Broadcast'].broadcast(\
+					"clientexecscript %s clientdo cmd \"SetSave cl_packetSendFPS 1\"" % (cli))
 		if self.isAdmin(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as an administrator. Use ^radmin <command>^c to execute commands through chat.^c You can get help by sending ^radmin help ^cto chat." % (cli))
@@ -216,7 +231,8 @@ class admin(ConsolePlugin):
 			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <command>." % (cli))
 			kwargs['Broadcast'].broadcast(\
 				"clientexecscript %s clientdo cmd \"set admin_phrase %s\"" % (cli, self.PHRASE))
-			
+	
+						
 	def isAdmin(self, client, **kwargs):
 		admin = False
 		
@@ -236,6 +252,16 @@ class admin(ConsolePlugin):
 		
 		return superuser
 
+	def isBanned(self, client, **kwargs):
+		banned = False
+
+		for each in self.fullbanlist:
+			if client['name'].lower() == each['name']:
+				if each['level'] == 'banned':
+					banned = True
+		
+		return banned
+
 	def onMessage(self, *args, **kwargs):
 		
 		name = args[1]
@@ -246,38 +272,30 @@ class admin(ConsolePlugin):
 		admin = self.isAdmin(client, **kwargs)
 		superuser = self.isSuperuser(client, **kwargs)
 
-		#ADDED: more than 4 message in 1 second = kick
-		tm = time.time()
-		last = self.LASTMESSAGE['lasttime']
-		first = self.LASTMESSAGE['firsttime']
-		
-		
-		if (self.LASTMESSAGE['client'] == name):
-			self.LASTMESSAGE['lasttime'] = tm
-			#commanders are immune
-			if not client['commander']:
-				self.LASTMESSAGE['repeat'] += 1
-				print 'repeat'
-			
-		else:
-			self.LASTMESSAGE['client'] = name
-			self.LASTMESSAGE['firsttime'] = tm
-			self.LASTMESSAGE['repeat'] = 0	
-			
-		if self.LASTMESSAGE['repeat'] > 3:
-			if ((last - first) < 1):
+		# ---
+		# MORE THEN FLOOD REPEATS(3)=4 A SEC(1) = kick
+		FLOOD_REPEATS = 2
+		FLOOD_A_SEC = 0.5	
+
+		if not client['flood']:
+			client['flood'] = { 'time' : 0, 'count' : 0 }
+
+
+		flood = client['flood']
+		print "flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time']))
+
+		if (time.time () - flood['time']) < FLOOD_A_SEC:
+
+			flood['count'] += 1
+
+			if flood['count'] > FLOOD_REPEATS:
 				reason = "Spamming chat results in automatic kicking."
-				kwargs['Broadcast'].broadcast(\
-					"Kick %s \"%s\"" % (clinum, reason))
-				self.LASTMESSAGE['client'] = None
-				self.LASTMESSAGE['repeat'] = 0
-				self.LASTMESSAGE['firsttime'] = 0
-				self.LASTMESSAGE['lasttime'] = 0
-			else:
-				self.LASTMESSAGE['repeat'] = 0
-				self.LASTMESSAGE['client'] = None
-				self.LASTMESSAGE['firsttime'] = 0
-				self.LASTMESSAGE['lasttime'] = 0
+				kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+
+		else:
+			flood['count'] = 0
+
+		flood['time'] = time.time ()
 		
 		request = re.match("request admin", message, flags=re.IGNORECASE)
 		if request:
@@ -324,7 +342,7 @@ class admin(ConsolePlugin):
 		shuffle = re.match(self.PHRASE+" shuffle", message, flags=re.IGNORECASE)
 		kick = re.match(self.PHRASE+" kick (\S+)", message, flags=re.IGNORECASE)
 		ban = re.match(self.PHRASE+" ban (\S+)", message, flags=re.IGNORECASE)
-		unban = re.match(self.PHRASE+" unban (\S+)", message, flags=re.IGNORECASE)
+		timeout = re.match(self.PHRASE+" timeout (\S+)", message, flags=re.IGNORECASE)
 		slap = re.match(self.PHRASE+" slap (\S+)", message, flags=re.IGNORECASE)
 		micoff = re.match(self.PHRASE+" micoff (\S+)", message, flags=re.IGNORECASE)
 		micon = re.match(self.PHRASE+" micon (\S+)", message, flags=re.IGNORECASE)
@@ -333,9 +351,7 @@ class admin(ConsolePlugin):
 		balance = re.match(self.PHRASE+" balance", message, flags=re.IGNORECASE)
 		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
-		spec = re.match(self.PHRASE+" spec (\S+)", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		banlistcmd = re.match(self.PHRASE+" banlist", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -361,26 +377,32 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"Kick %s \"%s\""\
 				 % (kickclient['clinum'], reason))
-			
-		if ban:
-			#kicks a player from the server and temporarily bans that player's IP till the game is over
+
+		if timeout:
 			reason = "An administrator has banned you from the server. You are banned till this game is over."
 			kickclient = self.getPlayerByName(ban.group(1))
 			kwargs['Broadcast'].broadcast(\
 				"Kick %s \"%s\"" \
 				 % (kickclient['clinum'], reason))
-			self.banlist.append(kickclient['ip'])
-			self.banlistname.append(kickclient['name'])
-			print self.banlistname
-			print self.banlist
 
-		if unban:
-			unbanclient = self.getPlayerByName(unban.group(1))
-			for index, namearg in self.banlistname:
-				if namearg == unbanclient['name']:
-					del self.banlistname[index]
-					del self.banlist[index]
-		
+			self.banlist.append(kickclient['ip'])
+
+			
+		if ban:
+			#kicks a player from the server and temporarily bans that player's IP till the game is over
+			reason = "An administrator has banned you from the server."
+			kickclient = self.getPlayerByName(ban.group(1))
+			kwargs['Broadcast'].broadcast(\
+				"Kick %s \"%s\"" \
+				 % (kickclient['clinum'], reason))
+
+	                banini = ConfigParser.ConfigParser ()
+	                banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
+	                banini.read (banconfig)
+			banini.set ('ipban', kickclient['ip'], kickclient['name'])
+			banini.write (open(banconfig, 'wb'))
+
+
 		if slap:
 			#slap will move a player x+100, y+200 to get them off of a structure
 			if self.PHASE != 5:
@@ -398,17 +420,19 @@ class admin(ConsolePlugin):
 			#Turns off players mic with clientdo	
 			offclient = self.getPlayerByName(micoff.group(1))
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum']))
-			
+
 		if micon:
-			#turn on players mic with clientdo
+			#Turns off players mic with clientdo	
 			onclient = self.getPlayerByName(micon.group(1))
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled false\"" % (onclient['clinum']))
 				 
 		if changeworld:
 			#change the map
-			kwargs['Broadcast'].broadcast(\
-				"changeworld %s"\
-				 % (changeworld.group(1)))
+			for each in mapvote.maplist:
+				if each == changeworld.group(1):
+					kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1).lowercase()))
+				else:
+					kwargs['Broadcast'].broadcast("SendMessage %s %s is not a valid map name." % (client['clinum']), changeworld.group(1))
 				 
 		if balance:
 			if self.PHASE != 5:
@@ -433,14 +457,7 @@ class admin(ConsolePlugin):
 			self.listClients(**kwargs)
 			balancethread = threading.Thread(target=self.doBalance, args=(clinum,False,True), kwargs=kwargs)
 			balancethread.start()
-		
-		if spec:
-			specplayer = self.getPlayerByName(spec.group(1))
-			specteam = 0
-			kwargs['Broadcast'].broadcast(\
-				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				% (specplayer['clinum'], specteam))
-				
+
 		if swap:
 			#swap a player to a different team
 			swapplayer = self.getPlayerByName(swap.group(1))
@@ -455,19 +472,7 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
-
-		if banlistcmd:
-			if len(self.banlistname) != 0: # check if banlist empty
-				kwargs['Broadcast'].broadcast("SendMessage %s Banlist:" % (client['clinum']))
-				for testname in self.banlistname:
-					kwargs['Broadcast'].broadcast(\
-						"SendMessage %s %s."\
-						% (client['clinum']), testname)
-			else:
-				kwargs['Broadcast'].broadcast(\
-					"SendMessage %s The Banlist is empty."\
-					% (client['clinum']))
-					
+				 
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -481,28 +486,19 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin shuffle ^wwill shuffle the game and set to previous phase."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin slap playername ^wwill move players off buildings."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin kick playername ^wwill remove a player from the server."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address till the end of the game."\
+				"SendMessage %s ^radmin timeout playername ^wwill remove a player from the game and ban that IP address."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin unban playername ^wwill unban a player from the server"\
+				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin micoff playername ^wwill turn the players mic off. Use on mic spammers."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin micon playername ^wwill turn the players mic on. Use only if the player will behave."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin changeworld mapname ^wwill change the map to the desired map."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin spec playername ^wwill move a specific player to spec team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin swap playername ^wwill move a specific player to another team."\
@@ -516,9 +512,6 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin banlist ^wwill show the current ban list to admins."\
-				 % (client['clinum']))
 	
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
@@ -631,8 +624,7 @@ class admin(ConsolePlugin):
 		kwargs['Broadcast'].broadcast("echo SERVERVAR: norunes is #norunes#")
 		
 		if (phase == 7):
-			self.banlist = []
-			self.banlistname = []
+			self.banlist = []	
 			for each in self.playerlist:
 				each['team'] = 0
 				each['commander'] = False

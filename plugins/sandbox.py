@@ -14,12 +14,13 @@ from operator import itemgetter
 from random import choice
 import urllib2
 import subprocess
+from mapvote import mapvote
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.5"
+	VERSION = "0.1.8"
 	playerlist = []
 	leaderlist = []
-	modlist = []
+	modlist = ['ino']
 	PHASE = 0
 	
 	def onPluginLoad(self, config):
@@ -56,8 +57,8 @@ class sandbox(ConsolePlugin):
 	def onStartServer(self, *args, **kwargs):
 				
 		self.playerlist = []
-		self.modlist = []
-		with open("./plugins/mods/reset.txt", 'r') as original:
+		self.modlist = ['ino']
+		with open("./plugins/mods/mapserver.txt", 'r') as original:
 			for line in original:
 				kwargs['Broadcast'].broadcast("%s" % (line))
 		original.close()	
@@ -155,18 +156,17 @@ class sandbox(ConsolePlugin):
 		slap = re.match("sb slap (\S+)", message, flags=re.IGNORECASE)
 		changeworld = re.match("sb changeworld (\S+)", message, flags=re.IGNORECASE)
 		help = re.match("sb help", message, flags=re.IGNORECASE)
-		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
 		playerhelp = re.match("sb player help", message, flags=re.IGNORECASE)
-		movespeed = re.match("sb mod movespeed (\S+)", message, flags=re.IGNORECASE)
-		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
-		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
-		jump = re.match("sb mod jump (\S+)", message, flags=re.IGNORECASE)
 		teamchange = re.match("sb allowteamchange", message, flags=re.IGNORECASE)
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
-		swap = re.match("sb swap (\S+)", message, flags=re.IGNORECASE)
-		spec = re.match("sb spec (\S+)", message, flags=re.IGNORECASE)
+		setteam = re.match("sb setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
 		
+		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
+		movespeed = re.match("sb mod speed (\S+)", message, flags=re.IGNORECASE)
+		gravity = re.match("sb mod gravity (\S+)", message, flags=re.IGNORECASE)
+		buildspeed = re.match("sb mod buildspeed (\S+)", message, flags=re.IGNORECASE)
+		jump = re.match("sb mod jump (\S+)", message, flags=re.IGNORECASE)
 		
 		modenable = re.match("mm enable (\S+)", message, flags=re.IGNORECASE)
 		modactive = re.match("mm get active", message, flags=re.IGNORECASE)
@@ -216,7 +216,11 @@ class sandbox(ConsolePlugin):
 
 		if changeworld:
 			#change the map
-			kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1)))
+			for each in mapvote.maplist:
+				if each == changeworld.group(1):
+					kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1).lowercase()))
+				else:
+					kwargs['Broadcast'].broadcast("SendMessage %s %s is not a valid map name." % (client['clinum']), changeworld.group(1))
 		
 		if movespeed:
 			kwargs['Broadcast'].broadcast("set p_speed %s" % (movespeed.group(1)))
@@ -242,27 +246,13 @@ class sandbox(ConsolePlugin):
 		if changepassword:
 			kwargs['Broadcast'].broadcast("set svr_connectpass %s" % (changepassword.group(1)))
 			
-		if spec:
-			specplayer = self.getPlayerByName(spec.group(1))
-			specteam = 0
-			kwargs['Broadcast'].broadcast(\
-				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				% (specplayer['clinum'], specteam))
-				
-		if swap:
+		if setteam:
 			#swap a player to a different team
-			swapplayer = self.getPlayerByName(swap.group(1))
-			newteam = 0
-			team = swapplayer['team']
-			if team == 1:
-				newteam = 2
-			if team == 2:
-				newteam = 1
-			if newteam == 0:
-				return
+			setplayer = self.getPlayerByName(setteam.group(2))
+			newteam = setteam.group(1)
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				 % (swapplayer['clinum'], newteam))
+				 % (setplayer['clinum'], newteam))
 			
 		if resetattributes:
 			resetattributesplayer = self.getPlayerByName(resetattributes.group(1))
@@ -324,15 +314,12 @@ class sandbox(ConsolePlugin):
 				"SendMessage %s ^rsb mod jump amount ^wwill change the jump height."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb mod movespeed amount ^wwill change the movement speed of the server."\
+				"SendMessage %s ^rsb mod speed amount ^wwill change the movement speed of the server."\
 				 % (client['clinum']))
 			
 		if playerhelp:
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb spec playername ^wwill move a specific player to spec team."\
-				 % (client['clinum']))
-			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^rsb swap playername ^wwill move a specific player to another team."\
+				"SendMessage %s ^rsb setteam playername ^wwill move a specific player to another team."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb givegold player amount ^wwill give gold to a player."\
@@ -405,8 +392,8 @@ class sandbox(ConsolePlugin):
 					kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
 		
 		if modreset:
-			self.modlist = []
-			with open("./plugins/mods/reset.txt", 'r') as original:
+			self.modlist = ['ino']
+			with open("./plugins/mods/mapserver.txt", 'r') as original:
 				for line in original:
 					kwargs['Broadcast'].broadcast("%s" % (line))
 			original.close()	
@@ -423,8 +410,8 @@ class sandbox(ConsolePlugin):
 
 		if (phase == 7):
 			self.banlist = []
-			self.modlist = []
-			with open("./plugins/mods/reset.txt", 'r') as original:
+			self.modlist = ['ino']
+			with open("./plugins/mods/mapreset.txt", 'r') as original:
 				for line in original:
 					kwargs['Broadcast'].broadcast("%s" % (line))
 			original.close()	
@@ -436,15 +423,10 @@ class sandbox(ConsolePlugin):
 		#fetch leader list and reload at the start of each game
 			try:
 				response = urllib2.urlopen('http://cedeqien.com/sandbox.ini')
-				response2 = urllib2.urlopen('http://playsavage2.com/admin.ini')
 				leaderlist = response.read()
-				adminlist = response2.read()
 				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'sandbox.ini')
 				f = open(leaderfile, 'w')
 				f.write(leaderlist)
-				f.close
-				f = open(leaderfile, 'a')
-				f.write(adminlist)
 				f.close
 				#reload the config file		
 				self.onPluginLoad(leaderfile)

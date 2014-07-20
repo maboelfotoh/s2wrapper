@@ -9,15 +9,9 @@ from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 
-#This plugin was written by Old55 and he takes full responsibility for the junk below.
-#He does not know python so the goal was to make something functional, not something
-#efficient or pretty.
-
-#NORMAL VERSION
-
 
 class mapvote(ConsolePlugin):
-	VERSION = "0.0.1"
+	VERSION = "0.0.3"
 	ms = None
 	PHASE = 0
 	playerlist = []
@@ -33,12 +27,6 @@ class mapvote(ConsolePlugin):
 
 		ini = ConfigParser.ConfigParser()
 		ini.read(config)
-		#for (name, value) in config.items('mapvote'):
-		#	if (name == "level"):
-		#		self._level = int(value)
-
-		#	if (name == "sf"):
-		#		self._sf = int(value)
 		for (name, value) in ini.items('maps'):
 			self.maplist.append({'name' : name, 'status' : value})
 
@@ -83,7 +71,7 @@ class mapvote(ConsolePlugin):
 			
 		mapnames = ', '.join(mapnames)
 		
-		mapmessage = "^cThis server is currently equipped with the ability to vote for a map change. Before a game has started you can send the message to ^rALL ^cchat: ^ynextmap mapname"
+		mapmessage = "^cThis server is currently equipped with the ability to vote for a map change. You can vote for the next map while the game is going. The map will be changed at the end of the game. ^rALL ^cchat: ^ynextmap mapname"
 		mapmessage2 = "^cThis will register your vote for that map."
 		mapmessage3 = ("^cCurrent valid maps are: ^y%s" % (mapnames))	
 		cli = args[0]
@@ -139,14 +127,16 @@ class mapvote(ConsolePlugin):
 		if (phase == 5):
 			self.clearMapVotes(*args, **kwargs)
 
-	def onNewGame(self, *args, **kwargs):
+	def onGameEnd(self, *args, **kwargs):
+		newmap = self.items[0][1]
+		clinum = args[0]
+		kwargs['Broadcast'].broadcast("Serverchat ^c%s has won the vote. The map will be changed to that in 30 seconds." % (newmap))
 		
-		if (self.PICKING == 1):
-			print 'team picking has begun, do not clear team player lists'
-			kwargs['Broadcast'].broadcast("echo team picking has begun, do not clear team player lists!")
-			
-			self.PICKING = 0
-			return
+		time.sleep(30)			
+		self.ChangeMap(newmap, **kwargs)
+		time.sleep(25)
+		#reconnect to avoid map bug
+		kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"reconnect\"" % (clinum))
 
 	def voteCheck(self, *args, **kwargs):
 		tie = False
@@ -174,9 +164,9 @@ class mapvote(ConsolePlugin):
 			d[maps] += 1
 
 		items = [(v, k) for k, v in d.items()]
-      		items.sort()
-      		items.reverse()           
-       		size = len(items)
+		items.sort()
+		items.reverse()           
+		size = len(items)
 		if size > 1:
 			if items[0][0] == items[1][0]:
 				print 'we have a tie'
@@ -184,20 +174,12 @@ class mapvote(ConsolePlugin):
 		if tie:
 			kwargs['Broadcast'].broadcast("Serverchat ^cThere is a tie between ^r%s ^cand ^r%s. ^cIf you would like to change your vote you may do so." % (items[0][1], items[1][1]))
 			return
-		
-		#We have a map winner
-		newmap = items[0][1]			
-		self.ChangeMap(newmap, **kwargs)
 
 	def ChangeMap(self, newmap, *args, **kwargs):
-
-		status = 'official'
 
 		for each in self.maplist:
 			if each['name'] == newmap:
 				status = each['status']
-		if status == 'unofficial':
-			kwargs['Broadcast'].broadcast("set svr_sendStats false; set svr_official false ")
 
 		kwargs['Broadcast'].broadcast("changeworld %s" % (newmap))
 		self.clearMapVotes(*args, **kwargs)
@@ -208,8 +190,8 @@ class mapvote(ConsolePlugin):
 		#ignore anything that isn't sent to ALL chat
 		if args[0] != "ALL":
 			return
-		#if the game has started, or we are in end phase, ignore
-		if self.PHASE == 5 or self.PHASE == 7:
+		#ignore if at the end of the game
+		if self.PHASE == 7:
 			return
 
 		name = args[1]
@@ -265,6 +247,7 @@ class mapvote(ConsolePlugin):
 
 		self.votelist = {'votes' : 0, 'playervotes' : []}	
 		self.TOTALPLAYERS = 0
+		
 	def reportVotes(self, *args, **kwargs):
 			
 		d = {}
@@ -274,12 +257,10 @@ class mapvote(ConsolePlugin):
 			d[maps] += 1
 
 		items = [(v, k) for k, v in d.items()]
-      		items.sort()
-      		items.reverse()
+		items.sort()
+		items.reverse()
 
 		for each in items:
 			kwargs['Broadcast'].broadcast("Serverchat ^cVotes for ^r%s: ^c%s" % (each[1], each[0]))	
-
-	def onGameEnd(self, *args, **kwargs):
-
-		kwargs['Broadcast'].broadcast("set svr_sendStats true; set svr_official true")
+		
+		
