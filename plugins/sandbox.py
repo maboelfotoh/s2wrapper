@@ -411,7 +411,7 @@ class sandbox(ConsolePlugin):
 		if (phase == 7):
 			self.banlist = []
 			self.modlist = ['ino']
-			with open("./plugins/mods/mapreset.txt", 'r') as original:
+			with open("./plugins/mods/mapserver.txt", 'r') as original:
 				for line in original:
 					kwargs['Broadcast'].broadcast("%s" % (line))
 			original.close()	
