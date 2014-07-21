@@ -161,7 +161,7 @@ class sandbox(ConsolePlugin):
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
 		setteam = re.match("sb setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
-		sbsudo = re.match("sb sudo (\S+)", message, flags=re.IGNORECASE)
+		sbsudo = re.match("sb sudo (.*)", message, flags=re.IGNORECASE)
 		
 		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
 		movespeed = re.match("sb mod speed (\S+)", message, flags=re.IGNORECASE)
