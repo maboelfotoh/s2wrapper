@@ -17,7 +17,7 @@ import subprocess
 from mapvote import mapvote
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.8"
+	VERSION = "0.1.9"
 	playerlist = []
 	leaderlist = []
 	modlist = ['ino']
@@ -161,6 +161,7 @@ class sandbox(ConsolePlugin):
 		teamdifference = re.match("sb teamdiff", message, flags=re.IGNORECASE)
 		changepassword = re.match("sb password (\S+)", message, flags=re.IGNORECASE)
 		setteam = re.match("sb setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
+		sbsudo = re.match("sb sudo (\S+)", message, flags=re.IGNORECASE)
 		
 		modhelp = re.match("sb mod help", message, flags=re.IGNORECASE)
 		movespeed = re.match("sb mod speed (\S+)", message, flags=re.IGNORECASE)
@@ -176,6 +177,9 @@ class sandbox(ConsolePlugin):
 		
 		if startgame:
 			kwargs['Broadcast'].broadcast("startgame")
+
+		if sbsudo:
+			kwargs['Broadcast'].broadcast("%s" % (sbsudo.group(1))
 					
 		if giveteamgold:
 			kwargs['Broadcast'].broadcast("giveteamgold %s %s" % (giveteamgold.group(1), giveteamgold.group(2)))
@@ -215,13 +219,8 @@ class sandbox(ConsolePlugin):
 			
 
 		if changeworld:
-			#change the map
-			for each in mapvote.maplist:
-				if each == changeworld.group(1):
-					kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1).lowercase()))
-				else:
-					kwargs['Broadcast'].broadcast("SendMessage %s %s is not a valid map name." % (client['clinum']), changeworld.group(1))
-		
+			kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1)))
+
 		if movespeed:
 			kwargs['Broadcast'].broadcast("set p_speed %s" % (movespeed.group(1)))
 		
@@ -292,6 +291,9 @@ class sandbox(ConsolePlugin):
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb changeworld mapname ^wwill change the map to the desired map."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rsb sudo args ^wdo whatever commands you want."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rsb allowteamchange ^wwill allow switching team."\
