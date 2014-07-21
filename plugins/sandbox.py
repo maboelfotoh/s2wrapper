@@ -179,8 +179,8 @@ class sandbox(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("startgame")
 
 		if sbsudo:
-			kwargs['Broadcast'].broadcast("%s" % (sbsudo.group(1))
-					
+			kwargs['Broadcast'].broadcast("%s" % (sbsudo.group(1)))
+			
 		if giveteamgold:
 			kwargs['Broadcast'].broadcast("giveteamgold %s %s" % (giveteamgold.group(1), giveteamgold.group(2)))
 			
