@@ -16,10 +16,9 @@ from numpy import median
 from random import choice
 import urllib2
 import subprocess
-from mapvote import mapvote
 
 class admin(ConsolePlugin):
-	VERSION = "1.5.3"
+	VERSION = "1.6.0"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -71,7 +70,7 @@ class admin(ConsolePlugin):
                 for (name, value) in banini.items('ban'):
                 	self.fullbanlist.append({'name': name, 'level' : value})
                 for (name, value) in banini.items('ipban'):
-                	self.ipban.append(name)	
+                	self.ipban.append(name)
 
 	def reload_plugins(self):
 	
@@ -87,7 +86,8 @@ class admin(ConsolePlugin):
 				PluginsManager.reload(name)
 			
 	def onStartServer(self, *args, **kwargs):
-		kwargs['Broadcast'].broadcast("Set norunes 0")		
+		kwargs['Broadcast'].broadcast("Set norunes 0")
+		kwargs['Broadcast'].broadcast("exec patch.cfg")
 		self.playerlist = []
 		self.banlist = []	
 
@@ -289,13 +289,49 @@ class admin(ConsolePlugin):
 			flood['count'] += 1
 
 			if flood['count'] > FLOOD_REPEATS:
-				reason = "Spamming chat results in automatic kicking."
+				reason = "Spamming results in automatic kicking."
 				kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
 
 		else:
 			flood['count'] = 0
 
 		flood['time'] = time.time ()
+
+		# ---
+
+
+		#ADDED: more than 4 message in 1 second = kick
+		#tm = time.time()
+		#last = self.LASTMESSAGE['lasttime']
+		#first = self.LASTMESSAGE['firsttime']
+	
+		
+		#if (self.LASTMESSAGE['client'] == name):
+		#	self.LASTMESSAGE['lasttime'] = tm
+		#	#commanders are immune
+		#	if not client['commander']:
+		#		self.LASTMESSAGE['repeat'] += 1
+		#		print 'repeat'
+		#	
+		#else:
+		#	self.LASTMESSAGE['client'] = name
+		#	self.LASTMESSAGE['firsttime'] = tm
+		#	self.LASTMESSAGE['repeat'] = 0	
+		#	
+		#if self.LASTMESSAGE['repeat'] > 3:
+		#	if ((last - first) < 1):
+		#		reason = "Spamming chat results in automatic kicking.OLD"
+		#		kwargs['Broadcast'].broadcast(\
+		#			"Kick %s \"%s\"" % (clinum, reason))
+		#		self.LASTMESSAGE['client'] = None
+		#		self.LASTMESSAGE['repeat'] = 0
+		#		self.LASTMESSAGE['firsttime'] = 0
+		#		self.LASTMESSAGE['lasttime'] = 0
+		#	else:
+		#		self.LASTMESSAGE['repeat'] = 0
+		#		self.LASTMESSAGE['client'] = None
+		#		self.LASTMESSAGE['firsttime'] = 0
+		#		self.LASTMESSAGE['lasttime'] = 0
 		
 		request = re.match("request admin", message, flags=re.IGNORECASE)
 		if request:
@@ -352,6 +388,7 @@ class admin(ConsolePlugin):
 		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
 		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
 		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
+		setteam = re.match(self.PHRASE+" setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -380,7 +417,7 @@ class admin(ConsolePlugin):
 
 		if timeout:
 			reason = "An administrator has banned you from the server. You are banned till this game is over."
-			kickclient = self.getPlayerByName(ban.group(1))
+			kickclient = self.getPlayerByName(timeout.group(1))
 			kwargs['Broadcast'].broadcast(\
 				"Kick %s \"%s\"" \
 				 % (kickclient['clinum'], reason))
@@ -401,7 +438,7 @@ class admin(ConsolePlugin):
 	                banini.read (banconfig)
 			banini.set ('ipban', kickclient['ip'], kickclient['name'])
 			banini.write (open(banconfig, 'wb'))
-
+			self.ipban.append(kickclient['ip'])
 
 		if slap:
 			#slap will move a player x+100, y+200 to get them off of a structure
@@ -422,17 +459,15 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled true\"" % (offclient['clinum']))
 
 		if micon:
-			#Turns off players mic with clientdo	
+			#Turns on players mic with clientdo	
 			onclient = self.getPlayerByName(micon.group(1))
 			kwargs['Broadcast'].broadcast("ClientExecScript %s clientdo cmd \"set voice_disabled false\"" % (onclient['clinum']))
-				 
+			
 		if changeworld:
 			#change the map
-			for each in mapvote.maplist:
-				if each == changeworld.group(1):
-					kwargs['Broadcast'].broadcast("changeworld %s" % (changeworld.group(1).lowercase()))
-				else:
-					kwargs['Broadcast'].broadcast("SendMessage %s %s is not a valid map name." % (client['clinum']), changeworld.group(1))
+			kwargs['Broadcast'].broadcast(\
+				"changeworld %s"\
+				 % (changeworld.group(1)))
 				 
 		if balance:
 			if self.PHASE != 5:
@@ -473,6 +508,14 @@ class admin(ConsolePlugin):
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (swapplayer['clinum'], newteam))
 				 
+		if setteam:
+			#swap a player to x team
+			setplayer = self.getPlayerByName(setplayer.group(2))
+			team = setplayer.group(1)
+			kwargs['Broadcast'].broadcast(\
+				"SetTeam #GetIndexFromClientNum(%s)# %s"\
+				 % (setplayer['clinum'], newteam))
+				 
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -489,13 +532,16 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin kick playername ^wwill remove a player from the server."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin timeout playername ^wwill remove a player from the game and ban that IP address."\
+				"SendMessage %s ^radmin timeout playername ^wwill remove a player for one game."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
-				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address."\
+				"SendMessage %s ^radmin ban playername ^wwill remove a player from the server and ban that IP address permenantly."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin micoff playername ^wwill turn the players mic off. Use on mic spammers."\
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin micon playername ^wwill turn the players mic on."\
 				 % (client['clinum']))
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin changeworld mapname ^wwill change the map to the desired map."\
@@ -512,7 +558,9 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin report balance ^wwill send a message to ALL players that has the avg. and median SF values."\
 				 % (client['clinum']))	
-	
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin setteam x playername ^wwill set players team to x."\
+				 % (client['clinum']))		
 	
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
 		clinum = admin
