@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.6.0"
+	VERSION = "1.6.1"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -510,11 +510,11 @@ class admin(ConsolePlugin):
 				 
 		if setteam:
 			#swap a player to x team
-			setplayer = self.getPlayerByName(setplayer.group(2))
-			team = setplayer.group(1)
+			setaplayer = self.getPlayerByName(setaplayer.group(2))
+			team = setaplayer.group(1)
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				 % (setplayer['clinum'], newteam))
+				 % (setaplayer['clinum'], newteam))
 				 
 		self.logCommand(client['name'],message)
 
