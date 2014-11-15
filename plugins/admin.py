@@ -510,11 +510,11 @@ class admin(ConsolePlugin):
 				 
 		if setteam:
 			#swap a player to x team
-			setaplayer = self.getPlayerByName(setaplayer.group(2))
-			team = setaplayer.group(1)
+			setplayer = self.getPlayerByName(setteam.group(2))
+			newteam = setteam.group(1)
 			kwargs['Broadcast'].broadcast(\
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
-				 % (setaplayer['clinum'], newteam))
+				 % (setplayer['clinum'], newteam))
 				 
 		self.logCommand(client['name'],message)
 
