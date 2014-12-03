@@ -17,10 +17,10 @@ import subprocess
 from mapvote import mapvote
 
 class sandbox(ConsolePlugin):
-	VERSION = "0.1.9"
+	VERSION = "0.2.5"
 	playerlist = []
 	leaderlist = []
-	modlist = ['ino']
+	modlist = []
 	PHASE = 0
 	
 	def onPluginLoad(self, config):
@@ -28,7 +28,7 @@ class sandbox(ConsolePlugin):
 		self.CONFIG = config
 		ini = ConfigParser.ConfigParser()
 		ini.read(config)
-		for (name, value) in ini.items('sandboxs'):
+		for (name, value) in ini.items('modders'):
 			self.leaderlist.append({'name': name, 'level' : value})
 		pass
 	
@@ -38,7 +38,7 @@ class sandbox(ConsolePlugin):
 		ini = ConfigParser.ConfigParser()
 		ini.read(self.CONFIG)
 
-		for (name, value) in ini.items('sandboxs'):
+		for (name, value) in ini.items('modders'):
 			self.leaderlist.append({'name': name, 'level' : value})
 
 	def reload_plugins(self):
@@ -57,11 +57,7 @@ class sandbox(ConsolePlugin):
 	def onStartServer(self, *args, **kwargs):
 				
 		self.playerlist = []
-		self.modlist = ['ino']
-		with open("./plugins/mods/mapserver.txt", 'r') as original:
-			for line in original:
-				kwargs['Broadcast'].broadcast("%s" % (line))
-		original.close()	
+		self.modlist = []
 
 	def getPlayerByClientNum(self, cli):
 
@@ -116,7 +112,7 @@ class sandbox(ConsolePlugin):
 		client['active'] = True	
 		if self.isLeader(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
-			"SendMessage %s ^cYou are registered as a leader. You can now use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
+			"SendMessage %s ^cYou are registered as a modder. You can now use the sandbox. Send the chat message: ^rsb help ^cto see what commands you can perform."\
 			 % (cli))
 			client['leader'] = True
 		
@@ -174,6 +170,11 @@ class sandbox(ConsolePlugin):
 		modindirectory = re.match("mm get list", message, flags=re.IGNORECASE)
 		modreset = re.match("mm reset", message, flags=re.IGNORECASE)
 		mmhelp = re.match("mm help", message, flags=re.IGNORECASE)
+		mmcreate = re.match("mm create (\S+)", message, flags=re.IGNORECASE)
+		mmdelete = re.match("mm delete (\S+)", message, flags=re.IGNORECASE)
+		mmmodify = re.match("mm modify (\S+) (\S+) (.*)", message, flags=re.IGNORECASE)
+		mmview = re.match("mm view (\S+)", message, flags=re.IGNORECASE)
+		mmwrite = re.match("mm write (\S+) (.*)")
 		
 		if startgame:
 			kwargs['Broadcast'].broadcast("startgame")
@@ -361,31 +362,44 @@ class sandbox(ConsolePlugin):
 		if mmhelp:
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rmm enable modname ^wwill enable a mod."\
-				 % (client['clinum']))
+				 % (client['clinum'])) #modenable
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rmm get active ^wwill show all active mods."\
-				 % (client['clinum']))
+				 % (client['clinum'])) #modactive
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rmm get list ^wwill show all the possible mods."\
-				 % (client['clinum']))
+				 % (client['clinum'])) #modindirectory
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^rmm reset ^wwill reset everything to its default settings."\
-				 % (client['clinum']))		
-			
+				 % (client['clinum'])) #modreset
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm create name ^wwill create a new mod with the specified name."\
+				 % (client['clinum'])) #mmcreate
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm delete name^wwill delete a mod with the specified name."\
+				 % (client['clinum'])) #mmdelete
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm modify name linenumber arg^wwill edit a mod by replacing a line with its arg."\
+				 % (client['clinum'])) #mmmodify
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm view name ^wwill view what a mod contain with the specified name."\
+				 % (client['clinum'])) #mmview			
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^rmm write name arg ^wwill write a line in a mod file."\
+				 % (client['clinum'])) #mmwrite				
 				
-		if modenable:
-			modName = "./plugins/mods/" + modenable.group(1) + ".txt"
-			if os.path.isfile(modName):
+		if modenable: #Enable a specific mod
+			modName = "./mods/" + modenable.group(1)
+			if os.path.isfile(modName): #Check if it exists
 				with open(modName, 'r') as modfile:
 					for line in modfile:
 						kwargs['Broadcast'].broadcast("%s" % (line))
 				self.modlist.append(modenable.group(1))
 				kwargs['Broadcast'].broadcast("SendMessage -1 %s has been enabled." % (modenable.group(1)))
-				modfile.close()
 			else:
 				kwargs['Broadcast'].broadcast("SendMessage -1 %s does not exist." % (modenable.group(1)))
 					
-		if modactive:
+		if modactive: #Shows the active mods currently on the server
 			kwargs['Broadcast'].broadcast("SendMessage %s mods currently active on this server:" % (client['clinum']))
 			if len(self.modlist) == 0:
 				kwargs['Broadcast'].broadcast("SendMessage %s None" % (client['clinum']))
@@ -393,18 +407,49 @@ class sandbox(ConsolePlugin):
 				for element in self.modlist:
 					kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], element))
 		
-		if modreset:
-			self.modlist = ['ino']
-			with open("./plugins/mods/mapserver.txt", 'r') as original:
+		if modreset: #Reset all the mods to its original state
+			self.modlist = []
+			with open("./mods/original", 'r') as original:
 				for line in original:
-					kwargs['Broadcast'].broadcast("%s" % (line))
-			original.close()	
+					kwargs['Broadcast'].broadcast("%s" % (line))	
 			kwargs['Broadcast'].broadcast("SendMessage -1 All mods have been reseted.")
 			
-		if modindirectory:
-			modindir = os.listdir("./plugins/mods/")
+		if modindirectory: #Used to check what mods are in the directory
+			modindir = os.listdir("./mods/")
 			for each in modindir:
-				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], each))			
+				kwargs['Broadcast'].broadcast("SendMessage %s %s" % (client['clinum'], each))		
+			
+		if mmcreate: #Used to create a mod
+			modName = mmcreate.group(1)
+			with open(modName, 'w') as newmodfile:
+				newmodfile.write("//%s", newmodfile)
+				kwargs['Broadcast'].broadcast("SendMessage %s %s has been created succesfully" % (client['clinum'], newmodfile))
+				
+		if mmview: #Used to view a mod
+			with open("./mods/" + mmview.group(1), 'r') as modFile:
+				for line in modFile:
+					numberLine = 0
+					kwargs['Broadcast'].broadcast("SendMessage %s %s %s" % (client['clinum'], numberLine, line))
+					numberLine += 1
+			
+		if mmdelete: #Used to delete a mod
+			os.remove("./mods/" + mmdelete.group(1))
+			kwargs['Broadcast'].broadcast("SendMessage %s %s has been deleted with success" % (client['clinum'], mmdelete.group(1)))
+			
+		if mmwrite: #Used to write a line in a mod
+			with open("./mods/" + mmwrite.group(1), 'a+') as modFile:
+				modFile.write(mmwrite.group(2))
+				kwargs['Broadcast'].broadcast("SendMessage %s %s has been added to %s successfully" % (client['clinum'], mmwrite.group(2), mmwrite.group(1)))
+				
+		if mmmodify: #modify a specific line
+			with open("./mods/" + mmmodify.group(1), 'r') as modFile:
+				data = modFile.readlines()
+				data[mmmodify.group(2)] = mmmodifiy.group(3)
+			with open("./mods" + mmmodify.group(1), 'w') as modFile:
+				modFile.writelines(data)
+				
+				
+					
 						
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
@@ -412,11 +457,10 @@ class sandbox(ConsolePlugin):
 
 		if (phase == 7):
 			self.banlist = []
-			self.modlist = ['ino']
-			with open("./plugins/mods/mapserver.txt", 'r') as original:
+			self.modlist = []
+			with open("./mods/original", 'r') as original:
 				for line in original:
-					kwargs['Broadcast'].broadcast("%s" % (line))
-			original.close()	
+					kwargs['Broadcast'].broadcast("%s" % (line))	
 			for each in self.playerlist:
 				each['team'] = 0
 				each['commander'] = False
@@ -424,12 +468,11 @@ class sandbox(ConsolePlugin):
 		if (phase == 6):
 		#fetch leader list and reload at the start of each game
 			try:
-				response = urllib2.urlopen('http://cedeqien.com/sandbox.ini')
+				response = urllib2.urlopen('http://cedeqien.com/modders.ini')
 				leaderlist = response.read()
-				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'sandbox.ini')
-				f = open(leaderfile, 'w')
-				f.write(leaderlist)
-				f.close
+				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'modders.ini')
+				with open(leaderfile, 'w') as f:
+					f.write(leaderlist)
 				#reload the config file		
 				self.onPluginLoad(leaderfile)
 			except:
