@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.6.1"
+	VERSION = "1.6.2"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -54,23 +54,22 @@ class admin(ConsolePlugin):
 		pass
 		
 	def reload_config(self):
-		
-        	self.adminlist = []
-       		self.ipban = []
-                ini = ConfigParser.ConfigParser()
-                ini.read(self.CONFIG)
-
-		banini = ConfigParser.ConfigParser ()
-		banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
-		banini.read (banconfig)
-
-                for (name, value) in ini.items('admin'):
-                	self.adminlist.append({'name': name, 'level' : value})
-
-                for (name, value) in banini.items('ban'):
-                	self.fullbanlist.append({'name': name, 'level' : value})
-                for (name, value) in banini.items('ipban'):
-                	self.ipban.append(name)
+		self.adminlist = []
+       	self.ipban = []
+        ini = ConfigParser.ConfigParser()
+        ini.read(self.CONFIG)
+        banini = ConfigParser.ConfigParser ()
+        banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
+        banini.read (banconfig)
+        
+        for (name, value) in ini.items('admin'):
+        	self.adminlist.append({'name': name, 'level' : value})
+        	
+        for (name, value) in banini.items('ban'):
+        	self.fullbanlist.append({'name': name, 'level' : value})
+        
+        for (name, value) in banini.items('ipban'):
+        	self.ipban.append(name)
 
 	def reload_plugins(self):
 	
@@ -209,8 +208,6 @@ class admin(ConsolePlugin):
 		cli = args[0]
 		
 		id = args[1]
-		if id == 836219:
-			kwargs['Broadcast'].broadcast("kick %s " % (cli))
 		client = self.getPlayerByClientNum(cli)
 		client['acctid'] = int(id)
 
@@ -700,11 +697,10 @@ class admin(ConsolePlugin):
 		response = urllib2.urlopen('http://188.40.92.72/admin.ini')
 		adminlist = response.read()
 		
-		f = open(self.CONFIG, 'w')
-		f.write(adminlist)
-		f.close
-		f.flush()
-		os.fsync(f.fileno())
+		with open(self.CONFIG, 'w') as f:
+			f.write(adminlist)
+			f.flush()
+			os.fsync(f.fileno())
 		self.reload_config()
 		
 			
@@ -758,9 +754,9 @@ class admin(ConsolePlugin):
 	def logCommand(self, client, message, **kwargs):
 		localtime = time.localtime(time.time())
 		date = ("%s-%s-%s, %s:%s:%s" % (localtime[1], localtime[2], localtime[0], localtime[3], localtime[4], localtime[5]))
-		f = open('admin.log', 'a')		
-		f.write("Timestamp: \"%s\", Admin: %s, Command: %s\n" % (date, client, message))
-		f.close
+		with open('admin.log', 'a') as f:
+			f.write("Timestamp: \"%s\", Admin: %s, Command: %s\n" % (date, client, message))
+
 
 	def onTeamChange (self, *args, **kwargs):
 		
@@ -932,7 +928,7 @@ class admin(ConsolePlugin):
 			'Magic Amplifier' : 700,
 			'Brain of Maliken' : 750,
 			'Heart of Maliken' : 950,
-			'Lungs of Maliken' : 800,
+			'Lungs of Maliken' : 1000,
 			'Mana Crystal' : 500,
 			'Mana Stone' : 200,
 			'Platemail' : 650,
