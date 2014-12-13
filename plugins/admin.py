@@ -31,7 +31,6 @@ class admin(ConsolePlugin):
 	NEEDRELOAD = False
 	LASTMESSAGE = {'client' : None, 'firsttime' : 0, 'lasttime' : 0, 'repeat' : 0}
 	DLL = '2f4827b8'
-	PHRASE = 'xRa'
 	norunes = 0
 	
 	def onPluginLoad(self, config):
@@ -224,13 +223,9 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as an administrator. Use ^radmin <command>^c to execute commands through chat.^c You can get help by sending ^radmin help ^cto chat." % (cli))
 			client['admin'] = True
-			kwargs['Broadcast'].broadcast(\
-				"clientexecscript %s clientdo cmd \"set admin_phrase %s\"" % (cli, self.PHRASE))
 		if self.isSuperuser(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <command>." % (cli))
-			kwargs['Broadcast'].broadcast(\
-				"clientexecscript %s clientdo cmd \"set admin_phrase %s\"" % (cli, self.PHRASE))
 	
 						
 	def isAdmin(self, client, **kwargs):
@@ -296,42 +291,6 @@ class admin(ConsolePlugin):
 			flood['count'] = 0
 
 		flood['time'] = time.time ()
-
-		# ---
-
-
-		#ADDED: more than 4 message in 1 second = kick
-		#tm = time.time()
-		#last = self.LASTMESSAGE['lasttime']
-		#first = self.LASTMESSAGE['firsttime']
-	
-		
-		#if (self.LASTMESSAGE['client'] == name):
-		#	self.LASTMESSAGE['lasttime'] = tm
-		#	#commanders are immune
-		#	if not client['commander']:
-		#		self.LASTMESSAGE['repeat'] += 1
-		#		print 'repeat'
-		#	
-		#else:
-		#	self.LASTMESSAGE['client'] = name
-		#	self.LASTMESSAGE['firsttime'] = tm
-		#	self.LASTMESSAGE['repeat'] = 0	
-		#	
-		#if self.LASTMESSAGE['repeat'] > 3:
-		#	if ((last - first) < 1):
-		#		reason = "Spamming chat results in automatic kicking.OLD"
-		#		kwargs['Broadcast'].broadcast(\
-		#			"Kick %s \"%s\"" % (clinum, reason))
-		#		self.LASTMESSAGE['client'] = None
-		#		self.LASTMESSAGE['repeat'] = 0
-		#		self.LASTMESSAGE['firsttime'] = 0
-		#		self.LASTMESSAGE['lasttime'] = 0
-		#	else:
-		#		self.LASTMESSAGE['repeat'] = 0
-		#		self.LASTMESSAGE['client'] = None
-		#		self.LASTMESSAGE['firsttime'] = 0
-		#		self.LASTMESSAGE['lasttime'] = 0
 		
 		request = re.match("request admin", message, flags=re.IGNORECASE)
 		if request:
@@ -362,7 +321,7 @@ class admin(ConsolePlugin):
 				
 	def superCommand(self, caller, value, **kwargs):
 		client = self.getPlayerByClientNum(caller)
-		supercommand = re.match(self.PHRASE+" (.*)", str(value), flags=re.IGNORECASE)
+		supercommand = re.match(" (.*)", str(value), flags=re.IGNORECASE)
 		if supercommand:
 			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
 			
@@ -374,21 +333,21 @@ class admin(ConsolePlugin):
 		message = str(value)
 		
 		#Matches for normal admins
-		restart = re.match(self.PHRASE+" restart", message, flags=re.IGNORECASE)
-		shuffle = re.match(self.PHRASE+" shuffle", message, flags=re.IGNORECASE)
-		kick = re.match(self.PHRASE+" kick (\S+)", message, flags=re.IGNORECASE)
-		ban = re.match(self.PHRASE+" ban (\S+)", message, flags=re.IGNORECASE)
-		timeout = re.match(self.PHRASE+" timeout (\S+)", message, flags=re.IGNORECASE)
-		slap = re.match(self.PHRASE+" slap (\S+)", message, flags=re.IGNORECASE)
-		micoff = re.match(self.PHRASE+" micoff (\S+)", message, flags=re.IGNORECASE)
-		micon = re.match(self.PHRASE+" micon (\S+)", message, flags=re.IGNORECASE)
-		changeworld = re.match(self.PHRASE+" changeworld (\S+)", message, flags=re.IGNORECASE)
-		help = re.match(self.PHRASE+" help", message, flags=re.IGNORECASE)
-		balance = re.match(self.PHRASE+" balance", message, flags=re.IGNORECASE)
-		getbalance = re.match(self.PHRASE+" get balance", message, flags=re.IGNORECASE)
-		reportbal = re.match(self.PHRASE+" report balance", message, flags=re.IGNORECASE)
-		swap = re.match(self.PHRASE+" swap (\S+)", message, flags=re.IGNORECASE)
-		setteam = re.match(self.PHRASE+" setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
+		restart = re.match(" restart", message, flags=re.IGNORECASE)
+		shuffle = re.match(" shuffle", message, flags=re.IGNORECASE)
+		kick = re.match(" kick (\S+)", message, flags=re.IGNORECASE)
+		ban = re.match(" ban (\S+)", message, flags=re.IGNORECASE)
+		timeout = re.match(" timeout (\S+)", message, flags=re.IGNORECASE)
+		slap = re.match(" slap (\S+)", message, flags=re.IGNORECASE)
+		micoff = re.match(" micoff (\S+)", message, flags=re.IGNORECASE)
+		micon = re.match(" micon (\S+)", message, flags=re.IGNORECASE)
+		changeworld = re.match(" changeworld (\S+)", message, flags=re.IGNORECASE)
+		help = re.match(" help", message, flags=re.IGNORECASE)
+		balance = re.match(" balance", message, flags=re.IGNORECASE)
+		getbalance = re.match(" get balance", message, flags=re.IGNORECASE)
+		reportbal = re.match(" report balance", message, flags=re.IGNORECASE)
+		swap = re.match(" swap (\S+)", message, flags=re.IGNORECASE)
+		setteam = re.match(" setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -680,7 +639,6 @@ class admin(ConsolePlugin):
 			
 					
 		if (phase == 6):
-			self.makepass()
 			
 			if self.UPDATE:
 			#fetch admin list and reload at the start of each game
@@ -932,7 +890,7 @@ class admin(ConsolePlugin):
 			'Magic Amplifier' : 700,
 			'Brain of Maliken' : 750,
 			'Heart of Maliken' : 950,
-			'Lungs of Maliken' : 800,
+			'Lungs of Maliken' : 1000,
 			'Mana Crystal' : 500,
 			'Mana Stone' : 200,
 			'Platemail' : 650,
@@ -1001,18 +959,6 @@ class admin(ConsolePlugin):
 				
 				banthread = threading.Thread(target=self.banclient, args=(caller, None), kwargs=kwargs)
 				banthread.start()
-				
-		if event == 'admin':
-			phrase = value[0:3]
-			if phrase != self.PHRASE:
-				return
-			self.adminCommand(caller, value, **kwargs)
-			
-		if event == 'super':		
-			phrase = value[0:3]
-			if phrase != self.PHRASE:
-				return			
-			self.superCommand(caller, value, **kwargs)
 			
 				
 	def banclient(self, *args, **kwargs):
@@ -1024,13 +970,6 @@ class admin(ConsolePlugin):
 
 		kwargs['Broadcast'].broadcast(\
 				 "ClientExecScript %s clientdo cmd \"quit\"" % (clinum))
-	
-	def makepass (self):
-		chars = '23456789abcdefghjkmnopqrstuvwxyzABCDEFHJKLMNPQRSTUVWXYZ'
-		newpasswd = ''
-   		for i in range(3):
-        		newpasswd = newpasswd + choice(chars)
-		self.PHRASE = newpasswd
 		
 	def getServerVar(self, *args, **kwargs):
 		var = args[0]
