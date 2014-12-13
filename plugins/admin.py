@@ -256,6 +256,11 @@ class admin(ConsolePlugin):
 		
 		return banned
 
+	def superCommand(self, message, **kwargs):
+		supercommand = re.match(" (.*)", str(message), flags=re.IGNORECASE)
+		if supercommand:
+			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
+
 	def onMessage(self, *args, **kwargs):
 		
 		name = args[1]
@@ -496,11 +501,6 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin setteam x playername ^wwill set players team to x."\
 				 % (client['clinum']))		
 	
-				
-	def superCommand(self, message, **kwargs):
-		supercommand = re.match(" (.*)", str(message), flags=re.IGNORECASE)
-		if supercommand:
-			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
 
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
 		clinum = admin
