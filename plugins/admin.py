@@ -18,7 +18,7 @@ import urllib2
 import subprocess
 
 class admin(ConsolePlugin):
-	VERSION = "1.6.1"
+	VERSION = "1.6.3"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -304,20 +304,7 @@ class admin(ConsolePlugin):
 			
 		admincommand = re.match("admin (.*)", message, flags=re.IGNORECASE)
 		supercommand = re.match("sudo (.*)", message, flags=re.IGNORECASE)
-		#Pass command back to player to send via scriptinput
-		if admincommand:
-		        #command = admincommand.group(1).replace(" ", "")
-		        command = admincommand.group(1)
-			kwargs['Broadcast'].broadcast(\
-				"clientexecscript %s clientdo cmd \"SendScriptInput what admin value #admin_phrase#\\\" %s\\\"\"" % (clinum, command))
-			
-		#Pass to command back to player to send via scriptinput
-		if supercommand:
-			if not superuser:
-				return
-			command = supercommand.group(1)
-			kwargs['Broadcast'].broadcast(\
-				"clientexecscript %s clientdo cmd \"SendScriptInput what super value #admin_phrase#\\\" %s\\\"\"" % (clinum, command))
+
 				
 	def superCommand(self, caller, value, **kwargs):
 		client = self.getPlayerByClientNum(caller)
