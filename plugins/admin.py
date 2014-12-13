@@ -300,46 +300,29 @@ class admin(ConsolePlugin):
 		#ignore everything else if it isn't from admin
 		if not admin:
 			return
-			
-		admincommand = re.match("admin (.*)", message, flags=re.IGNORECASE)
-		supercommand = re.match("sudo (.*)", message, flags=re.IGNORECASE)
-		
-		if admincommand:
-			command = admincommand.group(1)
-			
-		if supercommand:
-			command = supercommand.group(1)
 
-				
-	def superCommand(self, caller, value, **kwargs):
-		client = self.getPlayerByClientNum(caller)
-		supercommand = re.match(" (.*)", str(value), flags=re.IGNORECASE)
-		if supercommand:
-			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
+		if superuser:
+			self.SuperCommand(message, **kwargs)
 			
-	def adminCommand(self, caller, value, **kwargs):
-		
-		client = self.getPlayerByClientNum(caller)
-		clinum = caller
 		name = client['name']
 		message = str(value)
 		
 		#Matches for normal admins
-		restart = re.match(" restart", message, flags=re.IGNORECASE)
-		shuffle = re.match(" shuffle", message, flags=re.IGNORECASE)
-		kick = re.match(" kick (\S+)", message, flags=re.IGNORECASE)
-		ban = re.match(" ban (\S+)", message, flags=re.IGNORECASE)
-		timeout = re.match(" timeout (\S+)", message, flags=re.IGNORECASE)
-		slap = re.match(" slap (\S+)", message, flags=re.IGNORECASE)
-		micoff = re.match(" micoff (\S+)", message, flags=re.IGNORECASE)
-		micon = re.match(" micon (\S+)", message, flags=re.IGNORECASE)
-		changeworld = re.match(" changeworld (\S+)", message, flags=re.IGNORECASE)
-		help = re.match(" help", message, flags=re.IGNORECASE)
-		balance = re.match(" balance", message, flags=re.IGNORECASE)
-		getbalance = re.match(" get balance", message, flags=re.IGNORECASE)
-		reportbal = re.match(" report balance", message, flags=re.IGNORECASE)
-		swap = re.match(" swap (\S+)", message, flags=re.IGNORECASE)
-		setteam = re.match(" setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
+		restart = re.match("admin restart", message, flags=re.IGNORECASE)
+		shuffle = re.match("admin shuffle", message, flags=re.IGNORECASE)
+		kick = re.match("admin kick (\S+)", message, flags=re.IGNORECASE)
+		ban = re.match("admin ban (\S+)", message, flags=re.IGNORECASE)
+		timeout = re.match("admin timeout (\S+)", message, flags=re.IGNORECASE)
+		slap = re.match("admin slap (\S+)", message, flags=re.IGNORECASE)
+		micoff = re.match("admin micoff (\S+)", message, flags=re.IGNORECASE)
+		micon = re.match("admin micon (\S+)", message, flags=re.IGNORECASE)
+		changeworld = re.match("admin changeworld (\S+)", message, flags=re.IGNORECASE)
+		help = re.match("admin help", message, flags=re.IGNORECASE)
+		balance = re.match("admin balance", message, flags=re.IGNORECASE)
+		getbalance = re.match("admin get balance", message, flags=re.IGNORECASE)
+		reportbal = re.match("admin report balance", message, flags=re.IGNORECASE)
+		swap = re.match("admin swap (\S+)", message, flags=re.IGNORECASE)
+		setteam = re.match("admin setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -513,6 +496,12 @@ class admin(ConsolePlugin):
 				"SendMessage %s ^radmin setteam x playername ^wwill set players team to x."\
 				 % (client['clinum']))		
 	
+				
+	def superCommand(self, message, **kwargs):
+		supercommand = re.match(" (.*)", str(message), flags=re.IGNORECASE)
+		if supercommand:
+			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
+
 	def doBalance(self, admin, doBalance=False, doReport=False, **kwargs):
 		clinum = admin
 		
