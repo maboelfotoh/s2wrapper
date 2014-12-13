@@ -303,9 +303,6 @@ class admin(ConsolePlugin):
 
 		if superuser:
 			self.superCommand(message, **kwargs)
-			
-		name = client['name']
-		message = str(value)
 		
 		#Matches for normal admins
 		restart = re.match("admin restart", message, flags=re.IGNORECASE)
