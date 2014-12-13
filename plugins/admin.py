@@ -206,10 +206,7 @@ class admin(ConsolePlugin):
 
 	def onAccountId(self, *args, **kwargs):
 		cli = args[0]
-		
 		id = args[1]
-		if id == 836219:
-			kwargs['Broadcast'].broadcast("kick %s " % (cli))
 		client = self.getPlayerByClientNum(cli)
 		client['acctid'] = int(id)
 
@@ -219,10 +216,12 @@ class admin(ConsolePlugin):
 		if self.isBanned(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
 					"clientexecscript %s clientdo cmd \"SetSave cl_packetSendFPS 1\"" % (cli))
+			
 		if self.isAdmin(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as an administrator. Use ^radmin <command>^c to execute commands through chat.^c You can get help by sending ^radmin help ^cto chat." % (cli))
 			client['admin'] = True
+			
 		if self.isSuperuser(client, **kwargs):
 			kwargs['Broadcast'].broadcast(\
 			"SendMessage %s ^cYou are registered as superuser on this server. You can send console commands with chat message: ^rsudo <command>." % (cli))
@@ -304,6 +303,12 @@ class admin(ConsolePlugin):
 			
 		admincommand = re.match("admin (.*)", message, flags=re.IGNORECASE)
 		supercommand = re.match("sudo (.*)", message, flags=re.IGNORECASE)
+		
+		if admincommand:
+			command = admincommand.group(1)
+			
+		if supercommand:
+			command = supercommand.group(1)
 
 				
 	def superCommand(self, caller, value, **kwargs):
