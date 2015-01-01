@@ -494,7 +494,7 @@ class admin(ConsolePlugin):
 				 % (client['clinum']))		
 
 	def superCommand(self, message, **kwargs):
-		supercommand = re.match(" (.*)", str(message), flags=re.IGNORECASE)
+		supercommand = re.match("sudo (.*)", str(message), flags=re.IGNORECASE)
 		if supercommand:
 			kwargs['Broadcast'].broadcast("%s" % (supercommand.group(1)))
 
