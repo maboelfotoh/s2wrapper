@@ -278,6 +278,18 @@ class admin(ConsolePlugin):
 		flood = client['flood']
 		print "flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time']))
 
+                # Sickened2: additional spam check; user is not capable of manually typing more than 
+                #            MAX_TYPING_SPEED characters per second (avg)
+                MAX_TYPING_SPEED = 212; # chars/sec
+                msglen = len(list(message))
+                print "msglen = %d" % msglen
+                timediff = time.time () - flood['time']
+                print "timediff = %f" % timediff
+                #print("len(list(message)) / timediff ={0}".format(len(list(message)) / timediff))
+                if msglen / timediff > MAX_TYPING_SPEED:
+                        reason = "Sigh. Spamming results in automatic kicking."
+                        kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+
 		if (time.time () - flood['time']) < FLOOD_A_SEC:
 
 			flood['count'] += 1
