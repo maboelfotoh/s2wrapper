@@ -16,6 +16,7 @@ from numpy import median
 from random import choice
 import urllib2
 import subprocess
+import hashlib
 
 class admin(ConsolePlugin):
 	VERSION = "1.6.3"
@@ -163,7 +164,8 @@ class admin(ConsolePlugin):
 					 'req' : 0,\
 					 'flood' : None,\
 					 'f_req' : 0,\
-					 'l_req' : 0})
+					 'l_req' : 0,\
+					 'msgsum' : None})
 	
 	def onDisconnect(self, *args, **kwargs):
 		
@@ -278,17 +280,44 @@ class admin(ConsolePlugin):
 		flood = client['flood']
 		print "flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time']))
 
-                # Sickened2: additional spam check; user is not capable of manually typing more than 
-                #            MAX_TYPING_SPEED characters per second (avg)
-                MAX_TYPING_SPEED = 212; # chars/sec
+                # Sickened2: spam-check based on message length and checksum
                 msglen = len(list(message))
-                print "msglen = %d" % msglen
-                timediff = time.time () - flood['time']
-                print "timediff = %f" % timediff
-                #print("len(list(message)) / timediff ={0}".format(len(list(message)) / timediff))
-                if msglen / timediff > MAX_TYPING_SPEED:
-                        reason = "Sigh. Spamming results in automatic kicking."
-                        kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+                if msglen > 100:
+                        # this should be a lookup table for checksums of typical spam messages
+                        spam1chksum = "ec10ca635bb6b956959830f4e652369d"
+                        m = hashlib.md5()
+                        m.update(message[:100])
+                        chksum = m.hexdigest()
+                        if chksum == spam1chksum:
+                                reason = "Attention! Spamming results in automatic kicking."
+                                kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+                        elif not client['msgsum']:
+                                client['msgsum'] = chksum
+                                #print "Checksum"
+                                #print client['msgsum']
+                        elif client['msgsum'] == chksum:
+                                reason = "Attention! Spamming results in automatic kicking."
+                                kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+                        else:
+                                client['msgsum'] = chksum
+
+		# Sickened2: the following method is not as effective because
+		# 1) for large messages (e.g. > 250 bytes) part of the message is returned. For the same message length the
+		#    size could vary. So we can't use the message length reliably
+		# 2) if 2 chat packets are sent to the server and the 1st one arrives with delay but in the correct order,
+		#    the difference between the time of arrival between the two packets is shorter than the difference
+		#    between the departure time of the two packets
+                ## Sickened2: additional spam check; user is not capable of manually typing more than 
+                ##            MAX_TYPING_SPEED characters per second (avg)
+                #MAX_TYPING_SPEED = 212; # chars/sec
+                #msglen = len(list(message))
+                #print "msglen = %d" % msglen
+                #timediff = time.time () - flood['time']
+                #print "timediff = %f" % timediff
+                ##print("len(list(message)) / timediff ={0}".format(len(list(message)) / timediff))
+                #if msglen / timediff > MAX_TYPING_SPEED:
+                #        reason = "Sigh. Spamming results in automatic kicking."
+                #        kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
 
 		if (time.time () - flood['time']) < FLOOD_A_SEC:
 
