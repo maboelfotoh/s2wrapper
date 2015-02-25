@@ -19,7 +19,7 @@ import subprocess
 import hashlib
 
 class admin(ConsolePlugin):
-	VERSION = "1.6.3"
+	VERSION = "1.6.4"
 	playerlist = []
 	adminlist = []
 	banlist = []
@@ -114,6 +114,11 @@ class admin(ConsolePlugin):
 
 		for client in self.playerlist:
 			if (client['clinum'] == cli):
+				return client
+				
+	def getPlayerByAcctId(self, acctid):
+		for client in self.playerlist:
+			if (client['acctid'] == acctid):
 				return client
 
 	def getPlayerByName(self, name):
@@ -361,6 +366,7 @@ class admin(ConsolePlugin):
 		reportbal = re.match("admin report balance", message, flags=re.IGNORECASE)
 		swap = re.match("admin swap (\S+)", message, flags=re.IGNORECASE)
 		setteam = re.match("admin setteam (\S+) (\S+)", message, flags=re.IGNORECASE)
+		disablebuilding = re.match("admin nobuilding (\S+)", message, flags=re.IGNORECASE)
 
 		if restart:
 			#restarts server if something catastrophically bad has happened
@@ -488,6 +494,13 @@ class admin(ConsolePlugin):
 				"SetTeam #GetIndexFromClientNum(%s)# %s"\
 				 % (setplayer['clinum'], newteam))
 				 
+		if disablebuilding:
+			#disable a player from building
+			playerid = self.getPlayerByAcctId(disablebuilding.group(1))
+			playername = self.getPlayerByName(disablebuilding.group(1))
+			with open("/tmp/s2hooker/buildbanlist.txt", 'a+') as buildbanlist:
+				buildbanlist.write(playerid + " " + playername)
+				 
 		self.logCommand(client['name'],message)
 
 		if help:
@@ -532,7 +545,10 @@ class admin(ConsolePlugin):
 				 % (client['clinum']))	
 			kwargs['Broadcast'].broadcast(\
 				"SendMessage %s ^radmin setteam x playername ^wwill set players team to x."\
-				 % (client['clinum']))		
+				 % (client['clinum']))
+			kwargs['Broadcast'].broadcast(\
+				"SendMessage %s ^radmin nobuilding playername ^wwill disable building from a player."\
+				% (client['clinum']))
 
 	def superCommand(self, message, **kwargs):
 		supercommand = re.match("sudo (.*)", str(message), flags=re.IGNORECASE)
