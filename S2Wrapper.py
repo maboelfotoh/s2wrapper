@@ -64,7 +64,7 @@ class Savage2Thread(threading.Thread):
 		if config['args']:
 			args += [config['args']]
 		#env = [config['env']]
-		env = string.splitfields(config['env'], '=')
+		argenv = string.splitfields(config['env'], '=')
 
 		termold = stty.getSize()
 		termcfg = (int(config['term_x']), int(config['term_y']))
@@ -75,9 +75,10 @@ class Savage2Thread(threading.Thread):
 
 		print("starting: %s" % (args))
 		try:
-			if len(env) == 2:
-				os.environ[env[0].strip()] = env[1].strip()
-			self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
+			sav2env = os.environ.copy()
+			if len(argenv) == 2:
+				sav2env[argenv[0].strip()] = argenv[1].strip()
+			self.process = subprocess.Popen(args, env=sav2env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
 			#self.process = subprocess.Popen(args, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
 			print("[%s] has started successfully" % (self.process.pid))
 			self.alive = True
