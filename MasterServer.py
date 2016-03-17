@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import httplib, urllib, re, sys, logging
+import http.client
 from phpserialize import *
 
 class MasterServer:
@@ -45,26 +45,26 @@ class MasterServer:
 		lookup = ""
 
 		return self.decode (self.query ("f=nick2id&nickname[0]=%s" % nick))
-		
+
 	def getServer (self, login, lpass, broadcast, *args):
-		
+
 		if broadcast == 2:
 			return self.decode (self.queryserver ("f=set_online&login=%s&pass=%s" % (login, lpass)))
 		if broadcast == 1:
 			return self.decode (self.queryserver ("f=set_online&pub=NA&login=%s&pass=%s" % (login, lpass)))
-			
+
 	def decode (self, response):
-		
+
 		return loads(response, object_hook=phpobject)
 
 	def query (self, params):
 
-		conn = httplib.HTTPConnection (self.MASTERHOST)
+		conn = http.client.HTTPConnection (self.MASTERHOST)
 		conn.request ("POST", self.MASTERURL, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
@@ -76,12 +76,12 @@ class MasterServer:
 
 	def queryserver (self, params):
 		url = "/irc_updater/svr_request_pub.php"
-		conn = httplib.HTTPConnection (self.MASTERHOST)
+		conn = http.client.HTTPConnection (self.MASTERHOST)
 		conn.request ("POST", url, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
