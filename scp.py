@@ -138,7 +138,7 @@ and directories.
             (mode, size, mtime, atime) = self._read_stats(name)
             if self.preserve_times:
                 self._send_time(mtime, atime)
-            file_hdl = file(name, 'rb')
+            file_hdl = files(name, 'rb')
             self.channel.sendall('C%s %d %s\n' % (mode, size, basename))
             self._recv_confirm()
             file_pos = 0
@@ -244,7 +244,7 @@ and directories.
         
         try:
             file_hdl = file(path, 'wb')
-        except IOError, e:
+        except IOError as e:
             chan.send('\x01'+e.message)
             chan.close()
             raise
@@ -297,7 +297,7 @@ and directories.
             self._dirtimes[path] = (self._utime)
             self._utime = None
             self._recv_dir = path
-        except (OSError, SCPException), e:
+        except (OSError, SCPException) as e:
             self.channel.send('\x01'+e.message)
             raise
 

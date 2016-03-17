@@ -4,22 +4,20 @@
 import os
 import sys
 import time
-import signal
-import readline, subprocess, re
-import threading, SocketServer
+import subprocess, re
+import threading, socketserver
 from collections import deque
-import ConfigParser
+import configparser
 import stty
-from threading import Timer
 import string
 
 
 
-class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 	def handle(self):
 
-		print "\nConnection established by: %s\n" % self.client_address[0]
+		print("\nConnection established by: %s\n" % self.client_address[0])
 		Savage2ConsoleHandler.addChannel (self.onConsoleMessage)
 
 		# while until user is gone.
@@ -31,14 +29,14 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
 			Savage2SocketHandler.broadcast(line)
 
 		# clean up
-		print "\nLost connection: %s" % self.client_address[0]
+		print("\nLost connection: %s" % self.client_address[0])
 		Savage2ConsoleHandler.delChannel (self.onConsoleMessage)
 
 	def onConsoleMessage (self, line):
 		self.request.send (line + "\n")
 
 
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 	pass
 
 
@@ -103,7 +101,7 @@ class Savage2Thread(threading.Thread):
 		while (True):
 
 			# read lines
-			line = self.process.stdout.readline ();
+			line = self.process.stdout.readline();
 			line = ansisequence.sub ('' , line).replace ("\t", "").replace ("\r" , "").replace ("\n" , "")
 			line = line.replace ('^[[?1049h^[[1;52r^[[m^[(B^[[4l^[[?7h^[[?25l^[[H^[[2J^[[41d', '').replace ("^[)0" , '')
 
@@ -130,7 +128,7 @@ class Savage2Thread(threading.Thread):
 
 			
 		self.clean ()
-		print "Process dead?"
+		print("Process dead?")
 
 	def clean (self):
 		print("IOError: [%d] %s stdin is closed." % (self.process.pid, self.config['exec']))
@@ -286,7 +284,7 @@ class ConsoleParser:
 			self.onHasKilled   : re.compile ('Sv: (\S+) has been killed by (\S+)'),
 			self.onUnitChange  : re.compile ('(?:SGame:|Sv:)?.?Client #(\d+) requested change to: (\S+)'),
 			self.onCommResign  : re.compile ('SGame: (\S+) has resigned as commander.'),
-			self.onMapReset    : re.compile ('.*\d+\.\d+\s{3, 6}'),
+			self.onMapReset    : re.compile ('.*\d+\.\d+\s{3,6}'),
 			# custom filters
 			self.onItemTransaction : re.compile ('Sv: ITEM: Client (\d+) (\S+) (.*)'),
 			self.onRefresh : re.compile ('^refresh'),
@@ -319,7 +317,7 @@ class ConsoleParser:
 
 			try:
 				handler(*match.groups(), Broadcast=dh)
-			except Exception, e:
+			except Exception as e:
 				print("Error in: %s: %s" % (repr(handler), e))
 
 
@@ -458,7 +456,7 @@ class Savage2Daemon:
 
 	#print "\x1BE"
 	def onConsoleMessage (self, line):
-		print "onConsoleMessage> %s" % line
+		print("onConsoleMessage> %s" % line)
 	
 		for plugin in PluginsManager.getEnabled (PluginsManager.ConsoleParser):
 			plugin.onLineReceived (line, self.dh)
@@ -470,7 +468,7 @@ class Savage2Daemon:
 		pass
 
 	def disableServer(self):
-		print "Shutting socket server down.\n"
+		print("Shutting socket server down.\n")
 		Savage2ConsoleHandler.delChannel (self.onConsoleMessage)
 		Savage2SocketHandler.delChannel (self.onSocketMessage)
 		self.server.shutdown ()
@@ -485,7 +483,7 @@ class Savage2Daemon:
 		self.server_thread.start ()
 
 		ip, port = self.server.server_address
-		print "Started daemon: %d\n" % port
+		print("Started daemon: %d\n" % port)
 
 
 
@@ -505,7 +503,7 @@ def config_dump(config):
 
 def config_read(cfgs, config = None):
 	if not config:
-		config = ConfigParser.ConfigParser()
+		config = configparser.ConfigParser()
 
 	print("config_read(): %s" % (cfgs))
 	if config.read(cfgs):
@@ -578,7 +576,7 @@ if __name__ == "__main__":
 		while True:
 			# block till user input
 			try:
-				line = raw_input("")
+				line = input("")
 			except EOFError:
 				print("%s: caught EOF, what should i do?" % (__name__))
 				continue

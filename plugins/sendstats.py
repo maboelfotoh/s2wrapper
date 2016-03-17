@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #22/4/11 - Send stats to both S2G and Salvage servers
 import re
-import ConfigParser
-import thread
+import configparser
+import threading
 import glob
 import os
 import shutil
@@ -11,8 +11,6 @@ import time
 from StatsServers import StatsServers
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
-from urllib import urlencode
 
 class sendstats(ConsolePlugin):
 	base = None
@@ -26,7 +24,7 @@ class sendstats(ConsolePlugin):
 	sending = False
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 
 		for (name, value) in ini.items('paths'):
@@ -55,19 +53,19 @@ class sendstats(ConsolePlugin):
 		#Everytime we start a game, start a new thread to send all the stats to eaxs' script, and replays to stony
 		if (phase == 6):
 						 
-			uploadthread = thread.start_new_thread(self.uploadstats, ())
-			#eventthread  = thread.start_new_thread(self.uploadevent, ())
+			uploadthread = threading.start_new_thread(self.uploadstats, ())
+			#eventthread  = threading.start_new_thread(self.uploadevent, ())
 			
 		
 	def uploadstats(self):
-		print 'starting uploadstats'
+		print('starting uploadstats')
 		self.ss = StatsServers ()
 		home  = os.environ['HOME']
 		path = 	os.path.join(home, self.base)
 		sentdir = os.path.join(home, self.sent)
 		
 		for infile in glob.glob( os.path.join(home, self.base,'*.stats') ):
-			print "Sending stat file: " + infile
+			print("Sending stat file: " + infile)
 			s2pfile = infile
 			statstring = open(infile, 'r').read()
 			replayname = os.path.splitext(os.path.basename(infile))[0]
@@ -86,7 +84,7 @@ class sendstats(ConsolePlugin):
 				#self.ss.s2pstats(statstring)
 	
 			except:
-				print 'upload failed. no stats sent'				
+				print('upload failed. no stats sent')
 				continue
 
 			try:
@@ -117,7 +115,7 @@ class sendstats(ConsolePlugin):
 				self.ss.s2pstats(stats)
 	
 			except:
-				print 'upload failed. no stats sent'				
+				print('upload failed. no stats sent')
 				return
 
 			try:
@@ -144,10 +142,10 @@ class sendstats(ConsolePlugin):
 		if self.broadcast > 0:
 			server = self.ms.getServer(self.login, self.lpass, self.broadcast)
 			self.serverid = server['svr_id']
-			print self.serverid
+			print(self.serverid)
 			
 	def uploadreplay(self):
-		print 'starting uploadreplay'
+		print('starting uploadreplay')
 		self.sending = True
 		self.ss = StatsServers ()
 		home  = os.environ['HOME']
@@ -158,7 +156,7 @@ class sendstats(ConsolePlugin):
 		port = 22522
 		time.sleep(1)
 		for infile in glob.glob( os.path.join(home, self.base,'*.s2r') ):
-			print "Sending replay file: " + infile
+			print("Sending replay file: " + infile)
 			
 			try:
 				#self.ss.sendreplay(infile)
@@ -166,10 +164,10 @@ class sendstats(ConsolePlugin):
 				#os.system('scp -P "%s" "%s" scponly@"%s:%s"' % (port, infile, remotehost, remotefile) )
 				
 			except:
-				print 'upload failed. replay not sent'				
+				print('upload failed. replay not sent')
 				continue
 
-			print 'Sent replay'
+			print('Sent replay')
 			
 			try:
 				shutil.copy(infile,sentdir)

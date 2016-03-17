@@ -58,7 +58,7 @@ r"""
 
     It also provides functions to read from file-like objects:
 
-    >>> from StringIO import StringIO
+    >>> from io import StringIO
     >>> stream = StringIO('a:2:{i:0;i:1;i:1;i:2;}')
     >>> dict_to_list(load(stream))
     [1, 2]
@@ -238,7 +238,7 @@ r"""
     :copyright: 2007-2008 by Armin Ronacher.
     license: BSD
 """
-from StringIO import StringIO
+from io import StringIO
 
 __author__ = 'Armin Ronacher <armin.ronacher@active-4.com>'
 __version__ = '1.1'
@@ -304,6 +304,8 @@ def dumps(data, charset='utf-8', errors='strict', object_hook=None):
     """Return the PHP-serialized representation of the object as a string,
     instead of writing it to a file like `dump` does.
     """
+    basestring = (str,bytes)
+    unicode = str
     def _serialize(obj, keypos):
         if keypos:
             if isinstance(obj, (int, long, float, bool)):
@@ -397,7 +399,7 @@ def load(fp, charset='utf-8', errors='strict', decode_strings=False,
         _expect('{')
         result = []
         last_item = Ellipsis
-        for idx in xrange(items):
+        for idx in range(items):
             item = _unserialize()
             if last_item is Ellipsis:
                 last_item = item
@@ -479,7 +481,7 @@ def dict_to_list(d):
     # array_hook.
     d = dict(d)
     try:
-        return [d[x] for x in xrange(len(d))]
+        return [d[x] for x in range(len(d))]
     except KeyError:
         raise ValueError('dict is not a sequence')
 

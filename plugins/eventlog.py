@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
-import time
-import threading
-import ConfigParser
+import configparser
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 from operator import itemgetter
 #This plugin was written by Old55 and he takes full responsibility for the junk below.
 #He does not know python so the goal was to make something functional, not something
 #efficient or pretty.
 
 
-class eventlog(ConsolePlugin):
+class EventLog(ConsolePlugin):
 	VERSION = "0.0.1"
 	ms = None
 	PHASE = 0
@@ -34,7 +30,7 @@ class eventlog(ConsolePlugin):
 
 	def onPluginLoad(self, config, **kwargs):
 		#TODO: read stats directory from sendstats.ini, put that before .event file that gets written
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 
 		stats = os.path.join(os.path.dirname(config),'sendstats.ini')	
@@ -229,7 +225,7 @@ class eventlog(ConsolePlugin):
 
 		self.MATCH = args[0]
 		self.SERVER = args[1]
-		print self.MATCH
+		print(self.MATCH)
 
 	def getObjectType(self, indextype):
 		

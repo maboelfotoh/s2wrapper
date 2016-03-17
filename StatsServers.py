@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-import httplib, urllib, re, sys, logging, glob
-#import parakmiko
+import http.client, glob
 from phpserialize import *
-from scp import *
-from urllib import urlencode
 
 class StatsServers:
 
@@ -29,51 +26,51 @@ class StatsServers:
 
 	def s2gstats (self, params):
 
-		conn = httplib.HTTPConnection (self.S2GHOST)
+		conn = http.client.HTTPConnection (self.S2GHOST)
 		conn.request ("POST", self.S2GURL, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
 		conn.close()
 		
-		#print params
-		#print data
+		#print(params)
+		#print(data)
 		return data
 
 	def salvagestats (self, params):
 		
-		conn = httplib.HTTPConnection (self.SALVAGEHOST)
+		conn = http.client.HTTPConnection (self.SALVAGEHOST)
 		conn.request ("POST", self.SALVAGEURL, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
 		conn.close()
-		#print params
-		#print data
+		#print(params)
+		#print(data)
 		return data
 
 	def s2pstats (self, params):
 
-		conn = httplib.HTTPConnection (self.S2PHOST)
+		conn = http.client.HTTPConnection (self.S2PHOST)
 		conn.request ("POST", self.S2PURL, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
 		conn.close()
-		#print params
-		#print data
+		#print(params)
+		#print(data)
 		return data	
 	#This is currently not used. Replays are sent using os.system
 	'''
@@ -93,18 +90,18 @@ class StatsServers:
 	'''
 if __name__ == '__main__':
 
-	ss = StatsServer()
+	ss = StatsServers()
 	sentdir = 'sent'
 	for infile in glob.glob('*.s2r'):
-		print "Sending replay file: " + infile
+		print("Sending replay file: " + infile)
 		replay = infile
 		try:
 			ss.sendreplay(replay)
 			
 		except:
-			print 'upload failed. replay not sent'				
+			print('upload failed. replay not sent')
 			
 
-		print 'Sent replay'
+		print('Sent replay')
 		
 

@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 # Added requestTracker to prevent console spamming
 import re
-import math
 import time
-import ConfigParser
+import configparser
 import threading
 import random
 import os
 import PluginsManager
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 from operator import itemgetter
 from numpy import median
-from random import choice
-import urllib2
+from urllib import request
 import subprocess
 import hashlib
 
-class admin(ConsolePlugin):
+class Admin(ConsolePlugin):
 	VERSION = "1.6.4"
 	playerlist = []
 	adminlist = []
@@ -38,8 +35,8 @@ class admin(ConsolePlugin):
 		
 		self.ms = MasterServer ()
 		self.CONFIG = config
-		ini = ConfigParser.ConfigParser()
-		banini = ConfigParser.ConfigParser ()
+		ini = configparser.ConfigParser()
+		banini = configparser.ConfigParser ()
 		banconfig = os.path.dirname(config) + "/ban.ini"
 		banini.read (banconfig)
 		ini.read(config)
@@ -54,13 +51,13 @@ class admin(ConsolePlugin):
 		pass
 		
 	def reload_config(self):
-		
+
         	self.adminlist = []
        		self.ipban = []
-                ini = ConfigParser.ConfigParser()
+                ini = configparser.ConfigParser()
                 ini.read(self.CONFIG)
 
-		banini = ConfigParser.ConfigParser ()
+		banini = configparser.ConfigParser ()
 		banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
 		banini.read (banconfig)
 
@@ -76,7 +73,7 @@ class admin(ConsolePlugin):
 	
 		config = os.path.realpath(os.path.dirname (os.path.realpath (__file__)) + "/../s2wrapper.ini")
 		
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for name in ini.options('plugins'):
 			if name == 'admin':
@@ -283,7 +280,7 @@ class admin(ConsolePlugin):
 
 
 		flood = client['flood']
-		print "flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time']))
+		print("flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time'])))
 
                 # Sickened2: spam-check based on message length and checksum
                 msglen = len(list(message))
@@ -404,7 +401,7 @@ class admin(ConsolePlugin):
 				"Kick %s \"%s\"" \
 				 % (kickclient['clinum'], reason))
 
-	                banini = ConfigParser.ConfigParser ()
+	                banini = configparser.ConfigParser ()
 	                banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
 	                banini.read (banconfig)
 			banini.set ('ipban', kickclient['ip'], kickclient['name'])
@@ -672,7 +669,7 @@ class admin(ConsolePlugin):
 			kwargs['Broadcast'].broadcast("listclients")
 
 	def update(self, **kwargs):
-		response = urllib2.urlopen('http://188.40.92.72/admin.ini')
+		response = request.urlopen('http://188.40.92.72/admin.ini')
 		adminlist = response.read()
 		
 		f = open(self.CONFIG, 'w')
@@ -693,27 +690,27 @@ class admin(ConsolePlugin):
 			command = ["git","--git-dir",gitpath,"pull"]
 			output = subprocess.Popen(command, stdout=subprocess.PIPE).communicate()
 			result = output[0].split("\n")[0]
-			print 'result is %s' % result
+			print('result is %s' % result)
 			#TODO: make sure these work on all servers?
 			notneeded = re.match("Already up-to-date.", result)
 			needed = re.match("Updating .*", result)
 		except:
-			print 'error getting git update'
+			print('error getting git update')
 			return
 		
 		if notneeded:
-			print 'update not needed'
+			print('update not needed')
 			self.NEEDRELOAD = False
 			return
 
 		if needed:
-			print 'update needed'
+			print('update needed')
 			self.NEEDRELOAD = True
 			self.pluginreload(**kwargs)
 			return
 
 	def pluginreload(self, **kwargs):
-		print 'pluginreload called'
+		print('pluginreload called')
 		#Wait a couple minutes to allow clients to connect
 		time.sleep(120)
 		#Figure out how many clients are present

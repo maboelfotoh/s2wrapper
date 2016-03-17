@@ -1,19 +1,13 @@
 # -*- coding: utf-8 -*-
 # Auto-update incorporation, yet another last test
-import re
-import ConfigParser
+import configparser
 import threading
-import random
 import os
-import PluginsManager
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
-from operator import itemgetter
-import urllib2
-import subprocess
+from urllib import request
 
-class helper(ConsolePlugin):
+class Helper(ConsolePlugin):
 	VERSION = "0.0.1"
 	playerlist = []
 	helperlist = []
@@ -24,7 +18,7 @@ class helper(ConsolePlugin):
 		
 		self.ms = MasterServer ()
 		self.CONFIG = config
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		
 		for (name, value) in ini.items('helpers'):
@@ -36,7 +30,7 @@ class helper(ConsolePlugin):
 		
         	self.helperlist = []
        		self.ipban = []
-                ini = ConfigParser.ConfigParser()
+                ini = configparser.ConfigParser()
                 ini.read(self.CONFIG)
 
 		for (name, value) in ini.items('helpers'):
@@ -124,7 +118,7 @@ class helper(ConsolePlugin):
 
 	def update(self, **kwargs):
 		
-		response = urllib2.urlopen('http://188.40.92.72/helper.ini')
+		response = request.urlopen('http://188.40.92.72/helper.ini')
 		helperlist = response.read()
 			
 		f = open(self.CONFIG, 'w')

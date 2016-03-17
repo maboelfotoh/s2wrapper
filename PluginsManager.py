@@ -4,7 +4,6 @@ import traceback
 import sys
 import os
 import imp
-import re
 from S2Wrapper import ConsoleParser
 
 

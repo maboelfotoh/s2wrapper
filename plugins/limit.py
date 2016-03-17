@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
-import ConfigParser
+
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
-
 
 # TODO: 20101014 winex: improve forcespec'ing player by watching inside onSetTeam
-class limit(ConsolePlugin):
+class Limit(ConsolePlugin):
 
 	CONFIG_DEFAULT = {
 		'reason': "This server has restrictions on",
@@ -25,7 +22,7 @@ class limit(ConsolePlugin):
 		self.ms = MasterServer()
 
 		print(self.config)
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for name in self.config.keys():
 			try:

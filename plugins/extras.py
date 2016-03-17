@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 # 7/27/11 - Massive changes to following. Number of followers is still in variable FOLLOWERS
 import re
-import math
 import time
-import ConfigParser
-import threading
-import os
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 
 #This plugin was written by Old55 and he takes full responsibility for the junk below.
 #He does not know python so the goal was to make something functional, not something
@@ -17,7 +13,7 @@ from S2Wrapper import Savage2DaemonHandler
 #NORMAL VERSION
 
 
-class extras(ConsolePlugin):
+class Extras(ConsolePlugin):
 	VERSION = "1.2.2"
 	ms = None
 	CHAT_INTERVAL = 10
@@ -33,7 +29,7 @@ class extras(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 		
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		
 		pass
@@ -352,12 +348,12 @@ class extras(ConsolePlugin):
 			self.MAPSIZESET = True
 			checkdimension = checkdimension/2
 			kwargs['Broadcast'].broadcast("echo #GetTerrainHeight(%s,0)#" % (checkdimension))
-			print 'Map Size =', self.MAPSIZE
+			print('Map Size =', self.MAPSIZE)
 			time.sleep(1)
 
 	def mapDimensions(self, *args, **kwargs):
 		if self.MAPSIZE > 0:
-			print 'made it to MAP DIMENSONS'
+			print('made it to MAP DIMENSONS')
 			self.MAPSIZE -= 1
 			self.MAPSIZESET = False
 			

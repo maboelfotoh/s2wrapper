@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
 import MySQLdb
 
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 
 
-class ladder(ConsolePlugin):
+class Ladder(ConsolePlugin):
 
 	debug = True
 	version = "1.0"
@@ -21,14 +18,14 @@ class ladder(ConsolePlugin):
 		pass
 
 	def onSGame (self, *args, **kwargs):
-		self.saveLadder (args[0]);
+		self.saveLadder (args[0])
 
 
 	def saveLadder (self, serverstring):
 		if self.debug:
-			print serverstring
+			print(serverstring)
 
-		chunks = serverstring.split (' ');
+		chunks = serverstring.split (' ')
 		if len(chunks) != 4 or chunks[0] != 'LADDER':
 			return
 
@@ -56,8 +53,8 @@ class ladder(ConsolePlugin):
 		l_unit = l_unit.replace ('Player_', '').lower ()
 
 		if self.debug:
-			print "w_player_id: %s\n w_unit: %s\n w_hp_start: %s\n w_hp_end: %s" % (w_player_id, w_unit, w_hp_start, w_hp_end)
-			print "l_player_id: %s\n l_unit: %s\n l_hp_start: %s" % (l_player_id, l_unit, l_hp_start)
+			print("w_player_id: %s\n w_unit: %s\n w_hp_start: %s\n w_hp_end: %s" % (w_player_id, w_unit, w_hp_start, w_hp_end))
+			print("l_player_id: %s\n l_unit: %s\n l_hp_start: %s" % (l_player_id, l_unit, l_hp_start))
 
 		db = MySQLdb.connect(host="", user="", passwd="", db="")
 		c = db.cursor()

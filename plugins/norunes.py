@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 
@@ -10,7 +8,7 @@ from S2Wrapper import Savage2DaemonHandler
 #efficient or pretty.
 
 
-class norunes(ConsolePlugin):
+class NoRunes(ConsolePlugin):
 
 		
 	def onPluginLoad(self, config, **kwargs):

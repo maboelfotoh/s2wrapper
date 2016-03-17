@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
-import math
-import time
-import ConfigParser
-import threading
-import random
+import configparser
 import os
 import PluginsManager
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
-from operator import itemgetter
-from random import choice
-import urllib2
-import subprocess
-from mapvote import mapvote
+from urllib import request
 
 class sandbox(ConsolePlugin):
 	VERSION = "0.2.5"
@@ -26,7 +17,7 @@ class sandbox(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 		self.CONFIG = config
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('modders'):
 			self.leaderlist.append({'name': name, 'level' : value})
@@ -35,7 +26,7 @@ class sandbox(ConsolePlugin):
 	def reload_config(self):
 		
 		self.leaderlist = []
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(self.CONFIG)
 
 		for (name, value) in ini.items('modders'):
@@ -45,7 +36,7 @@ class sandbox(ConsolePlugin):
 	
 		config = os.path.realpath(os.path.dirname (os.path.realpath (__file__)) + "/../s2wrapper.ini")
 		
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for name in ini.options('plugins'):
 			if name == 'sandbox':
@@ -444,7 +435,7 @@ class sandbox(ConsolePlugin):
 		if mmmodify: #modify a specific line
 			with open("./mods/" + mmmodify.group(1), 'r') as modFile:
 				data = modFile.readlines()
-				data[mmmodify.group(2)] = mmmodifiy.group(3)
+				data[mmmodify.group(2)] = mmmodify.group(3)
 			with open("./mods" + mmmodify.group(1), 'w') as modFile:
 				modFile.writelines(data)
 				
@@ -468,7 +459,7 @@ class sandbox(ConsolePlugin):
 		if (phase == 6):
 		#fetch leader list and reload at the start of each game
 			try:
-				response = urllib2.urlopen('http://cedeqien.com/modders.ini')
+				response = request.urlopen('http://cedeqien.com/modders.ini')
 				leaderlist = response.read()
 				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'modders.ini')
 				with open(leaderfile, 'w') as f:

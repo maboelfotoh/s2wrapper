@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import re
-import math
 import time
 import threading
-import ConfigParser
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 
 
-class pug(ConsolePlugin):
+
+class Pug(ConsolePlugin):
 	VERSION = "1.0.1"
 	ms = None
 	PHASE = 0
@@ -26,7 +24,7 @@ class pug(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		'''
 		for (name, value) in ini.items('var'):
@@ -91,13 +89,13 @@ class pug(ConsolePlugin):
 			self.startinfo['h_ready'] = False
 			kwargs['Broadcast'].broadcast("set State_Interrupted_EffectPath \"trigger UpdateDetail 1\"; set Pet_HumanWorker_Inventory9 \"\";")
 			if self.PICKING:
-				resetall(**kwargs)
+				self.resetall(**kwargs)
 		if client['clinum'] == self.startinfo['b_captain']:
 			self.startinfo['b_captain'] = None
 			self.startinfo['b_ready'] = False
 			kwargs['Broadcast'].broadcast("set Gadget_Hail_ModelPath \"trigger UpdateError 1\"; set Pet_BeastWorker_Inventory9 \"\";")
 			if self.PICKING:
-				resetall(**kwargs)
+				self.resetall(**kwargs)
 				
 	def onSetName(self, *args, **kwargs):
 
@@ -188,7 +186,7 @@ class pug(ConsolePlugin):
 				each['newteam'] = 0
 			self.PICKING = False
 			self.STARTED = False
-			resetall(**kwargs)
+			self.resetall(**kwargs)
 	
 	def togglePlay(self, client, playing=None, **kwargs):
 		color = '^g'
@@ -258,7 +256,7 @@ class pug(ConsolePlugin):
 				#pickthread = threading.Thread(target=self.ingame_picking, args=(caller, client, player, None), kwargs=kwargs)
 				#pickthread.start()
 				#self.ingame_picking(caller, client, player, **kwargs)
-				print 'Will go to ingame picking'
+				print('Will go to ingame picking')
 			if caller == self.startinfo['h_captain']:
 				#check players status
 				if not player['play']:

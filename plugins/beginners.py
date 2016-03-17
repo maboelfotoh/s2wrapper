@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 # 03/15/11 - Add variables to beginners.ini
-import re
-import math
-import time
-import ConfigParser
-import threading
+import configparser
 import os
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 
 
-class beginners(ConsolePlugin):
+class Beginners(ConsolePlugin):
 	VERSION = "1.0.0"
 	ms = None
 	TIME = 0
@@ -32,7 +27,7 @@ class beginners(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		
 		for (name, value) in ini.items('var'):
@@ -53,7 +48,7 @@ class beginners(ConsolePlugin):
 
 		for (name, value) in ini.items('admin'):
 			self.adminlist.append({'name': name, 'level' : value})
-		print self.adminlist
+		print(self.adminlist)
 		pass
 
 	def onStartServer(self, *args, **kwargs):
@@ -88,12 +83,12 @@ class beginners(ConsolePlugin):
 		ip = args[2]
 		for client in self.playerlist:
 			if (client['clinum'] == id):
-				print 'already have entry with that clientnum!'
+				print('already have entry with that clientnum!')
 				return
 
 		for each in self.ipban:
 			if each == ip:
-				kwargs['Broadcast'].broadcast("kick %s You are banned from this server" % (cli))
+				kwargs['Broadcast'].broadcast("kick %s You are banned from this server" % id)
 				
 
 		self.playerlist.append ({'clinum' : id, 'acctid' : 0, 'level' : 0, 'sf' : 0, 'name' : 'X', 'active' : 0, 'banned' : False, 'ip' : ip, 'banstamp' : 0, 'kills' : 0})
@@ -170,7 +165,7 @@ class beginners(ConsolePlugin):
 		if doKick:
 			kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
 
-		print client
+		print(client)
 
 	def onTeamChange (self, *args, **kwargs):
 		
@@ -248,8 +243,8 @@ class beginners(ConsolePlugin):
 		killer = self.getPlayerByName(args[1])
 		
 		killer['kills'] += 1
-		print killer
-		print killed
+		print(killer)
+		print(killed)
 
 	def smurfCheck(self, **kwargs):
 		

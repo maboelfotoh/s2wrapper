@@ -2,11 +2,10 @@
 
 import os
 import re
-import ConfigParser
+import configparser
 from PluginsManager import ConsolePlugin
-from S2Wrapper import Savage2DaemonHandler
 
-class banlist(ConsolePlugin):
+class BanList(ConsolePlugin):
 
 	reason = "BANNED! :P"
 	bans  = {}
@@ -17,7 +16,7 @@ class banlist(ConsolePlugin):
 		self.bans  = {}
 		self.regex = []
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('banlist'):
 			if   name == "@reason":
