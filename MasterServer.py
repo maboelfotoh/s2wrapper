@@ -5,9 +5,9 @@ from phpserialize import *
 
 class MasterServer:
 
-	MASTERHOST = "masterserver.savage2.s2games.com"
+	MASTERHOST = "masterserver1.talesofnewerth.com"
 	MASTERURL = "/irc_updater/irc_requester.php"
-	MASTERSTAT = "188.40.92.72"
+	MASTERSTAT = "masterserver1.talesofnewerth.com"
 	headers = {}
 
 	def __init__(self):
