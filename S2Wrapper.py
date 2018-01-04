@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 
-
+import errno
 import os
+import pty
+import select
+import signal
+import subprocess
+import re
+import termios
+import struct
+import fcntl
+
 import sys
 import time
 import signal
 import readline, subprocess, re
-import threading, SocketServer
+import threading
 from collections import deque
 import ConfigParser
 import stty
@@ -14,171 +23,6 @@ from threading import Timer
 import string
 
 
-
-class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
-
-	def handle(self):
-
-		print "\nConnection established by: %s\n" % self.client_address[0]
-		Savage2ConsoleHandler.addChannel (self.onConsoleMessage)
-
-		# while until user is gone.
-		while (True):
-			line = self.request.recv (1024);
-			if (line == ''):
-				break
-
-			Savage2SocketHandler.broadcast(line)
-
-		# clean up
-		print "\nLost connection: %s" % self.client_address[0]
-		Savage2ConsoleHandler.delChannel (self.onConsoleMessage)
-
-	def onConsoleMessage (self, line):
-		self.request.send (line + "\n")
-
-
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-	pass
-
-
-class Savage2Thread(threading.Thread):
-
-	hack = 0
-	process = None
-	alive = False
-	def __init__(self, config):
-		threading.Thread.__init__(self)
-		self.config = config
-		
-	def run(self):
-		
-		self.launchDaemon ()
-
-	def launchDaemon (self):
-		Savage2SocketHandler.addChannel (self.onSocketMessage)
-		Savage2DaemonHandler.addChannel (self.onDaemonMessage)
-
-		config = self.config
-		args = [config['exec']]
-		if config['args']:
-			args += [config['args']]
-		#env = [config['env']]
-		argenv = string.splitfields(config['env'], '=')
-
-		termold = stty.getSize()
-		termcfg = (int(config['term_x']), int(config['term_y']))
-		termnew = (
-			termcfg[0] if termcfg[0] > 0 else termold[0],
-			termcfg[1] if termcfg[1] > 0 else termold[1] )
-		stty.setSize(termnew)
-
-		print("starting: %s" % (args))
-		try:
-			sav2env = os.environ.copy()
-			if len(argenv) == 2:
-				sav2env[argenv[0].strip()] = argenv[1].strip()
-			self.process = subprocess.Popen(args, env=sav2env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-			#self.process = subprocess.Popen(args, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-			print("[%s] has started successfully" % (self.process.pid))
-			self.alive = True
-			# give some time for process to read new tty size
-			time.sleep(0.1)
-		finally:
-			# return old size in any case
-			stty.setSize(termold)
-
-		if not self.process:
-			return
-
-		self.pingAlive()
-		self.checkAlive()
-		self.read ()
-		
-	def read(self):
-
-		# annoying colors and stuff
-		ansisequence = re.compile(r'\x1B\[[^A-Za-z]*[A-Za-z]|\x1b\([^A-Za-z]*[A-Za-z]|\x08')
-
-		while (True):
-
-			# read lines
-			line = self.process.stdout.readline ();
-			line = ansisequence.sub ('' , line).replace ("\t", "").replace ("\r" , "").replace ("\n" , "")
-			line = line.replace ('^[[?1049h^[[1;52r^[[m^[(B^[[4l^[[?7h^[[?25l^[[H^[[2J^[[41d', '').replace ("^[)0" , '')
-
-			# process is dead
-			#if line == "" and self.process.poll () is not None:
-			if self.process.poll () is not None:
-				break
-
-			if (line == ">"):
-				continue
-
-			line = line.lstrip ('>')
-			#if it catches the ALIVE statement, set the local variable True
-			active = re.match('^ALIVE', line)
-			if active:
-				self.alive = True
-			#ignore all the crap that clutters up the output
-			ignore = re.match('^Resource: |(SGame:)?\s?Spawned new |(SGame:)?\s?Adding Building |Error: CClientConnection|(\d+)$', line)
-			if ignore: 
-				continue
-			else:
-				# broadcast
-				Savage2ConsoleHandler.broadcast(line)
-
-			
-		self.clean ()
-		print "Process dead?"
-
-	def clean (self):
-		print("IOError: [%d] %s stdin is closed." % (self.process.pid, self.config['exec']))
-		Savage2SocketHandler.delChannel (self.onSocketMessage)
-		Savage2DaemonHandler.delChannel (self.onDaemonMessage)
-		# don't go crazy spawning process too fast, sleep some instead
-		time.sleep(1.0)
-		if self.config['once'] == "true":
-			return
-		self.launchDaemon()
-
-	def write(self, line):
-		try:
-			self.process.stdin.write (line + "\n")
-		except IOError:
-			self.clean ()
-
-	def onSocketMessage (self, line):
-		self.write (line)
-	def onDaemonMessage (self, line):
-		self.write (line)
-
-	def checkAlive (self):
-		
-		print ('Is process alive: %s' % (self.alive))
-		if self.process.poll () is not None:
-			self.clean()
-			return
-
-		if self.alive == False:
-			self.process.kill ()
-			self.clean()
-			return
-
-		
-		r = threading.Timer(130.0, self.checkAlive)
-		r.start()
-
-		self.alive = False
-		
-
-	def pingAlive (self):
-				
-		Savage2SocketHandler.broadcast("echo ALIVE")
-		
-		r = threading.Timer(120.0, self.pingAlive)
-		r.start()
-		
 class Savage2ConsoleHandler:
 
 	def __init__(self):
@@ -205,34 +49,6 @@ class Savage2ConsoleHandler:
 			for cb in Savage2ConsoleHandler.channel:
 				cb(line)
 		Savage2ConsoleHandler.queue.clear()
-
-
-class Savage2SocketHandler:
-
-	def __init__(self):
-		Savage2SocketHandler.queue = deque()
-		Savage2SocketHandler.channel = []
-
-	@staticmethod
-	def addChannel (cb):
-		Savage2SocketHandler.channel.append (cb)
-
-	@staticmethod
-	def delChannel (cb):
-		Savage2SocketHandler.channel.remove (cb)
-
-	@staticmethod
-	def put (line):
-		Savage2SocketHandler.queue.append (line)
-
-	@staticmethod
-	def broadcast(line=None):
-		if line:
-			Savage2SocketHandler.put(line)
-		for line in Savage2SocketHandler.queue:
-			for cb in Savage2SocketHandler.channel:
-				cb(line)
-		Savage2SocketHandler.queue.clear()
 
 
 class Savage2DaemonHandler:
@@ -319,7 +135,7 @@ class ConsoleParser:
 
 			try:
 				handler(*match.groups(), Broadcast=dh)
-			except Exception, e:
+			except Exception as e:
 				print("Error in: %s: %s" % (repr(handler), e))
 
 
@@ -425,14 +241,178 @@ class ConsoleParser:
 	def cmd(self, string):
 		Savage2DaemonHandler.broadcast(string)
 
+class OutStream:
+    def __init__(self, fileno):
+        self._fileno = fileno
+        self._buffer = ""
+
+    def read_lines(self):
+        try:
+            output = os.read(self._fileno, 1000).decode()
+        except OSError as e:
+            if e.errno != errno.EIO: raise
+            output = ""
+        lines = output.split("\n")
+        lines[0] = self._buffer + lines[0] # prepend previous
+                                           # non-finished line.
+        if output:
+            self._buffer = lines[-1]
+            return lines[:-1], True
+        else:
+            self._buffer = ""
+            if len(lines) == 1 and not lines[0]:
+                # We did not have buffer left, so no output at all.
+                lines = []
+            return lines, False
+
+    def fileno(self):
+        return self._fileno
+
+
+def set_winsize(fd, row, col, xpix=0, ypix=0):
+    winsize = struct.pack("HHHH", row, col, xpix, ypix)
+    fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
+
+
+ansi_regex = r'\x1b(' \
+             r'(\[\??\d+[hl])|' \
+             r'([=<>a-kzNM78])|' \
+             r'([\(\)][a-b0-2])|' \
+             r'(\[\d{0,2}[ma-dgkjqi])|' \
+             r'(\[\d+;\d+[hfy]?)|' \
+             r'(\[;?[hf])|' \
+             r'(#[3-68])|' \
+             r'([01356]n)|' \
+             r'(O[mlnp-z]?)|' \
+             r'(/Z)|' \
+             r'(\d+)|' \
+             r'(\[\?\d;\d0c)|' \
+             r'(\d;\dR))'
+
+sav2color_regex = r'\^[a-z]|\^\*'
+
+ansi_escape = re.compile(ansi_regex, flags=re.IGNORECASE)
+sav2color_escape = re.compile(sav2color_regex, flags=re.IGNORECASE)
+stripped = lambda s: "".join(i for i in s if 31 < ord(i) < 127)
+
+
+class Savage2Thread(threading.Thread):
+
+	hack = 0
+	process = None
+	alive = False
+	_relaunch = False
+	def __init__(self, config):
+		threading.Thread.__init__(self)
+		self.config = config
+		if self.config['once'] != "true":
+			self._relaunch = True
+
+	def run(self):		
+		self.launchDaemon ()
+
+	def launchDaemon (self):
+		self.alive = True
+		Savage2DaemonHandler.addChannel (self.onDaemonMessage)
+
+		config = self.config
+		args = [config['exec']]
+		if config['args']:
+			args += [config['args']]
+                args[1] += ';Set sys_dedicatedConsole true;Set sys_debugOutput true'
+
+		argenv = string.splitfields(config['env'], '=')
+
+		print("starting: %s" % (args))
+		sav2env = os.environ.copy()
+		if len(argenv) == 2:
+			sav2env[argenv[0].strip()] = argenv[1].strip()
+
+
+		# Start the subprocess.
+		self.out_r, out_w = pty.openpty()
+		self.err_r, err_w = pty.openpty()
+		set_winsize(self.out_r, 1000, 1000)
+		set_winsize(self.err_r, 1000, 1000)
+
+		self.process = subprocess.Popen(args, env=sav2env, stdin=subprocess.PIPE, stderr=err_w, stdout=out_w, universal_newlines=True)
+		os.close(out_w) # if we do not write to process, close these.
+		os.close(err_w)
+
+		fds = {OutStream(self.out_r), OutStream(self.err_r)}
+
+		print("[%s] has started successfully" % (self.process.pid))
+		try:
+			self.read(fds)
+		except Exception as e:
+			self.clean()
+			if self._relaunch:
+				self.relaunch()
+
+	def read(self, fds):
+            while self.alive and fds:
+                # Call select(), anticipating interruption by signals.
+                while self.alive:
+                    try:
+                        rlist, _, _ = select.select(fds, [], [])
+                        break
+                    except InterruptedError:
+                        continue
+
+                # Handle all file descriptors that are ready.
+                for f in rlist:
+                    lines, readable = f.read_lines()
+                    # Example: Just print every line. Add your real code here.
+                    for line in lines:
+                        line = ansi_escape.sub('', line)
+                        line = sav2color_escape.sub('', line)
+                        if line == ">":
+                            continue
+
+                        Savage2ConsoleHandler.broadcast(stripped(line))
+
+                    if not readable:
+                        # This OutStream is finished.
+			print("IOError: fileno:%s is closed." % f._fileno)
+                        fds.remove(f)
+
+		if not fds:
+			print('relaunch')
+			if self._relaunch:
+				self.relaunch()
+
+	def relaunch(self):
+		# don't go crazy spawning process too fast, sleep some instead
+		time.sleep(1.0)
+		self.launchDaemon()
+
+	def clean (self):
+		os.close(self.out_r)
+		os.close(self.err_r)
+
+	def write(self, line):
+		try:
+			if self.process:
+				self.process.stdin.write (line + "\n")
+			else:
+				print('foo')
+		except IOError:
+			self.clean()
+			if self.relaunch:
+				self.relaunch()
+
+	def onSocketMessage (self, line):
+		self.write (line)
+	def onDaemonMessage (self, line):
+		self.write (line)
+
+
 
 # Launches various threads, actual savage2 daemon and the inet server
 import PluginsManager
 class Savage2Daemon:
 
 	parser = None
-	server = None
-	server_thread = None
 	thread = None
 	debug = ""
 	dh = None
@@ -442,12 +422,10 @@ class Savage2Daemon:
 
 		# Setup our broadcasters
 		Savage2ConsoleHandler ()
-		Savage2SocketHandler ()
 		self.dh = Savage2DaemonHandler ()
 
 		# Add callback's for messages
 		Savage2ConsoleHandler.addChannel (self.onConsoleMessage)
-		Savage2SocketHandler.addChannel (self.onSocketMessage)
 
 		# Launch savage2 thread
 		# this thread will run and handle savage2 dedicated server
@@ -456,37 +434,17 @@ class Savage2Daemon:
 		self.thread.daemon = True
 		self.thread.start ()
 
-	#print "\x1BE"
+	def exit(self):
+		self.thread.alive = False
+		self.thread.process.kill()
+
 	def onConsoleMessage (self, line):
-		print "onConsoleMessage> %s" % line
+		print("%s" % line)
 	
 		for plugin in PluginsManager.getEnabled (PluginsManager.ConsoleParser):
 			plugin.onLineReceived (line, self.dh)
 
 		pass
-
-	#print "(Debug)onSocketMessage> %s\n" % repr(line)
-	def onSocketMessage (self, line):
-		pass
-
-	def disableServer(self):
-		print "Shutting socket server down.\n"
-		Savage2ConsoleHandler.delChannel (self.onConsoleMessage)
-		Savage2SocketHandler.delChannel (self.onSocketMessage)
-		self.server.shutdown ()
-
-	def enableServer(self):
-		config = self.config
-		addr = (config.get('inet', 'listen'), config.getint('inet', 'port'))
-		self.server = ThreadedTCPServer(addr, ThreadedTCPRequestHandler)
-
-		self.server_thread = threading.Thread(target=self.server.serve_forever)
-		self.server_thread.setDaemon(True)
-		self.server_thread.start ()
-
-		ip, port = self.server.server_address
-		print "Started daemon: %d\n" % port
-
 
 
 def config_exists(name, suggestion=None):
@@ -529,7 +487,6 @@ if __name__ == "__main__":
 	path_plugins = os.path.join(path_install, "plugins")
 	conf_def = "default.ini"
 	conf_loc = "s2wrapper.ini"
-	#dir_mod = "server"
 
 	# read default config
 	cfgdef = os.path.join(path_install, conf_def)
@@ -559,19 +516,8 @@ if __name__ == "__main__":
 		if config.getboolean('plugins', name):
 			PluginsManager.enable(name)
 		
-	# write local config
-	#config_write(cfgloc, config)
-
-
-	# reset our terminal
-	os.system('reset')
-
 	# launch daemon
 	daemon = Savage2Daemon(config)
-	# enable inet server
-	if config.getboolean('inet', 'enable'):
-		daemon.enableServer()
-
 
 	# Catch keyboard interrupts, while we run our main while.
 	try:
@@ -591,6 +537,7 @@ if __name__ == "__main__":
 			cmd = args[0]
 
 			if cmd == "exit":
+				daemon.exit()
 				break
 
 			if cmd == "plugins":
@@ -628,5 +575,5 @@ if __name__ == "__main__":
 		pass
 
 	# Clean.
-	#daemon.disableServer()
 	print("%s: exiting..." % (__name__))
+	daemon.exit()
