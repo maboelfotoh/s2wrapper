@@ -8,7 +8,7 @@ from urllib import urlencode
 
 class StatsServers:
 
-	S2GHOST = "masterserver.savage2.s2games.com"
+	S2GHOST = "masterserver1.talesfonewerth.com"
 	S2GURL = "/irc_updater/irc_stats.php"
 	S2PHOST = "savage.boubbin.org"
 	S2PURL = "/stats_files/uploader.php"
