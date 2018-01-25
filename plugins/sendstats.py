@@ -8,6 +8,8 @@ import os
 import shutil
 import urllib
 import time
+import base64
+import json
 from StatsServers import StatsServers
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
@@ -68,8 +70,9 @@ class sendstats(ConsolePlugin):
 		
 		for infile in glob.glob( os.path.join(home, self.base,'*.stats') ):
 			print "Sending stat file: " + infile
-			s2pfile = infile
-			statstring = open(infile, 'r').read()
+			statstring_raw = open(infile, 'r')
+			datastat = statstring_raw.readlines()
+			statstring = datastat[1]
 			replayname = os.path.splitext(os.path.basename(infile))[0]
 			try:
 				replaysize = os.path.getsize(os.path.join(home, self.base, replayname+'.s2r'))
@@ -77,15 +80,12 @@ class sendstats(ConsolePlugin):
 				replaysize = 100000
 
 			statstring_replay = statstring + ("&file_name=%s.s2r&file_size=%s" % (replayname,replaysize))
-			decoded = urllib.quote(statstring)
-			stats = ("stats=%s" % (decoded))
-						
+
 			try:
 				self.ss.s2gstats(statstring_replay)
-				self.ss.salvagestats(stats)
-				#self.ss.s2pstats(statstring)
 	
-			except:
+			except Exception as e:
+				print e.message
 				print 'upload failed. no stats sent'				
 				continue
 
@@ -95,9 +95,8 @@ class sendstats(ConsolePlugin):
 			except:
 				continue
 
-		if not self.sending:
-		
-			self.uploadreplay()
+		#if not self.sending:
+			#self.uploadreplay()
 		
 	def uploadevent(self):
 
@@ -151,19 +150,19 @@ class sendstats(ConsolePlugin):
 		self.sending = True
 		self.ss = StatsServers ()
 		home  = os.environ['HOME']
-		path = 	os.path.join(home, self.base)
 		sentdir = os.path.join(home, self.sent)
-		remotehost = '188.40.92.72'
-		remotefile = 'incoming'
-		port = 22522
 		time.sleep(1)
 		for infile in glob.glob( os.path.join(home, self.base,'*.s2r') ):
 			print "Sending replay file: " + infile
+			with open(infile, 'rb') as f:
+				data = f.read()
+				encoded = base64.b64decode(data)
+
+			replay = {'id':infile, 'login':self.login, 'pass':self.lpass, 'content':encoded}
+			replayjson = json.dumps(replay)
 			
 			try:
-				#self.ss.sendreplay(infile)
-				os.system('curl --retry 10 -F \"replay=@%s\" -F \"login=%s\" -F \"password=%s\" \"http://www.savage2replays.com/replay_uploader.php\"' % (infile, self.login, self.lpass))
-				#os.system('scp -P "%s" "%s" scponly@"%s:%s"' % (port, infile, remotehost, remotefile) )
+				self.ss.replays(replayjson)
 				
 			except:
 				print 'upload failed. replay not sent'				

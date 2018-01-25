@@ -10,11 +10,6 @@ class StatsServers:
 
 	S2GHOST = "masterserver1.talesfonewerth.com"
 	S2GURL = "/irc_updater/irc_stats.php"
-	S2PHOST = "savage.boubbin.org"
-	S2PURL = "/stats_files/uploader.php"
-	SALVAGEHOST = "188.40.92.72"
-	SALVAGEURL = "/wwwps2/index.php"
-	REPLAYURL = "/wwwps2/replay.php"
 	headers = {}
 
 	def __init__(self):
@@ -26,6 +21,11 @@ class StatsServers:
 
 	def decode (self, response):
 		return loads(response, object_hook=phpobject)
+
+	def queryserver (self, params):
+		url = "/irc_updater/svr_request_pub.php"
+		conn = httplib.HTTPConnection (self.MASTERHOST)
+		conn.request ("POST", url, params, self.headers)
 
 	def s2gstats (self, params):
 
@@ -44,10 +44,11 @@ class StatsServers:
 		#print data
 		return data
 
-	def salvagestats (self, params):
+	def replays (self, params):
 		
-		conn = httplib.HTTPConnection (self.SALVAGEHOST)
-		conn.request ("POST", self.SALVAGEURL, params, self.headers)
+		conn = httplib.HTTPConnection (self.S2GHOST)
+		json_headers = {'content-type' : 'application/json'}
+		conn.request ("POST", self.S2GURL, params, json_headers)
 
 		response = conn.getresponse()
 
@@ -60,21 +61,6 @@ class StatsServers:
 		#print data
 		return data
 
-	def s2pstats (self, params):
-
-		conn = httplib.HTTPConnection (self.S2PHOST)
-		conn.request ("POST", self.S2PURL, params, self.headers)
-
-		response = conn.getresponse()
-
-		if response.status <> 200:
-			return None
-
-		data = response.read()
-		conn.close()
-		#print params
-		#print data
-		return data	
 	#This is currently not used. Replays are sent using os.system
 	'''
 	def sendreplay (self, params):
