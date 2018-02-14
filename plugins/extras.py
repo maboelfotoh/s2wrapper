@@ -3,7 +3,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 import os
 from MasterServer import MasterServer
@@ -33,7 +33,7 @@ class extras(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 		
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		
 		pass
@@ -352,12 +352,12 @@ class extras(ConsolePlugin):
 			self.MAPSIZESET = True
 			checkdimension = checkdimension/2
 			kwargs['Broadcast'].broadcast("echo #GetTerrainHeight(%s,0)#" % (checkdimension))
-			print 'Map Size =', self.MAPSIZE
+			print('Map Size =', self.MAPSIZE)
 			time.sleep(1)
 
 	def mapDimensions(self, *args, **kwargs):
 		if self.MAPSIZE > 0:
-			print 'made it to MAP DIMENSONS'
+			print('made it to MAP DIMENSONS')
 			self.MAPSIZE -= 1
 			self.MAPSIZESET = False
 			

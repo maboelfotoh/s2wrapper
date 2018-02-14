@@ -3,7 +3,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
@@ -48,7 +48,7 @@ class balancer(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('balancer'):
 			if (name == "threshold"):
@@ -135,7 +135,7 @@ class balancer(ConsolePlugin):
 			if (client['clinum'] == id):
 				#added 10/12. If a player DCs and reconnects, they are auto-joined to their old team
 				#but there is no team join message. This automatically adds them back to the balancer team list.
-				print 'already have entry with that clientnum!'
+				print('already have entry with that clientnum!')
 				team = int(client['team'])
 				
 				if (team > 0):
@@ -227,7 +227,7 @@ class balancer(ConsolePlugin):
 			
 			
 	def removeTeamMember (self, client, fromteam, team, **kwargs):
-		print 'Removing player....'
+		print('Removing player....')
 		client ['team'] = team
 		cli = client ['clinum']
 		item = 'clinum'
@@ -239,7 +239,7 @@ class balancer(ConsolePlugin):
 
 	def addTeamMember (self, client, toteam, team, **kwargs):
 		
-		print 'Adding player....'	
+		print('Adding player....')	
 		cli = client['clinum']
 		client ['active'] = 1
 		NAME = client['name']
@@ -411,7 +411,7 @@ class balancer(ConsolePlugin):
 		
 		avg1 = int(self.TOTAL1/self.STAMPS)
 		avg2 = int(self.TOTAL2/self.STAMPS)
-		print avg1, avg2, self.STAMPS
+		print(avg1, avg2, self.STAMPS)
 		kwargs['Broadcast'].broadcast("Serverchat ^cHow stacked was this game from start to finish? Humans had an average combined BF of ^r%s^c, Beasts had an average combined BF of ^r%s ^cfrom a total of ^y%s ^ctime points." % (avg1, avg2, self.STAMPS))
 		#clear out the team dictionary info and globals when the map is reloaded
 		del self.teamOne ['players'][:]
@@ -443,7 +443,7 @@ class balancer(ConsolePlugin):
 	def onNewGame(self, *args, **kwargs):
 		
 		if (self.PICKING == 1):
-			print 'team picking has begun, do not clear team player lists'
+			print('team picking has begun, do not clear team player lists')
 			kwargs['Broadcast'].broadcast("echo team picking has begun, do not clear team player lists!")
 			
 			self.PICKING = 0
@@ -551,7 +551,7 @@ class balancer(ConsolePlugin):
 			return
 		
 		diff = self.teamOne['size'] - self.teamTwo['size']
-		print diff
+		print(diff)
 		if (diff == 0):
 			self.EvenTeamBalancer(**kwargs)
 		#uneven balancer if there is a difference between 1-3. if it more than that, it would be best to restart, but that has not been implemented
@@ -626,7 +626,7 @@ class balancer(ConsolePlugin):
 
 			
 			ltarget = abs(self.evaluateBalance (float(player1 ['bf']), 0.0, True))
-			print ltarget
+			print(ltarget)
 			if (lowest < 0):
 				lowest = ltarget
 				# wouldn't work if the first player was the one to pick, so had to do this here
@@ -639,7 +639,7 @@ class balancer(ConsolePlugin):
 			lowest = ltarget
 			pick = player1
 		
-		print pick
+		print(pick)
 
 		if (pick == None):
 			kwargs['Broadcast'].broadcast("echo BALANCER: UNEVEN balancer was not happy for some reason I can't figure out")
@@ -660,7 +660,7 @@ class balancer(ConsolePlugin):
 		
 		if (self.OPTION == 1):
 			self.switchlist.append ({'name' : pick ['name'], 'clinum' : pick ['clinum'], 'accept' : 0})
-			print self.switchlist
+			print(self.switchlist)
 			self.giveOption (**kwargs)
 	
 	
@@ -695,13 +695,13 @@ class balancer(ConsolePlugin):
 				pick2 = player2
 
 		
-		print pick1, pick2
+		print(pick1, pick2)
 
 
 		kwargs['Broadcast'].broadcast("echo Balancer selections: Clients %s, %s with BF %s, %s." % (pick1['clinum'], pick2['clinum'], pick1['bf'], pick2['bf']))
 
 		if (lowest >= self.DIFFERENCE):
-			print 'unproductive balance. terminate'
+			print('unproductive balance. terminate')
 			kwargs['Broadcast'].broadcast("echo unproductive EVEN balance")
 			return
 
@@ -714,7 +714,7 @@ class balancer(ConsolePlugin):
 		if (self.OPTION == 1):
 			self.switchlist.append ({'name' : pick1['name'], 'clinum' : pick1['clinum'], 'accept' : 0})
 			self.switchlist.append ({'name' : pick2['name'], 'clinum' : pick2['clinum'], 'accept' : 0})
-			print self.switchlist
+			print(self.switchlist)
 			self.giveOption (**kwargs)
 	
 	def giveOption(self, **kwargs):
@@ -928,7 +928,7 @@ class balancer(ConsolePlugin):
 				return
 
 		self.DIFFERENCE = abs(self.evaluateBalance())
-		print(self.DIFFERENCE)
+		print((self.DIFFERENCE))
 
 		if (self.DIFFERENCE > self.THRESHOLD):
 			self.getClosestTwoToTarget (self.getLargeTeam (), self.getSmallTeam (),  **kwargs)
@@ -959,7 +959,7 @@ class balancer(ConsolePlugin):
 		if (overcheck > 0) and (self.DIFFERENCE > self.THRESHOLD):
 			self.getClosestPersonToTarget (self.getLargeTeam (), **kwargs)
 		else:
-			print 'threshold not met'
+			print('threshold not met')
 			kwargs['Broadcast'].broadcast("Serverchat ^cUneven team balancer initiated, but current balance percentage of ^y%s ^cdoes not meet the threshold of ^y%s" % (round(self.DIFFERENCE, 1), self.THRESHOLD))
 
 	def onTeamCheck(self, *args, **kwargs):
@@ -1029,7 +1029,7 @@ class balancer(ConsolePlugin):
 	def onListClients(self, *args, **kwargs):
 		clinum = args[0]
 		name = args[2]
-		print 'making client active'
+		print('making client active')
 		client = self.getPlayerByName(name)
 		client ['active'] = 1
 

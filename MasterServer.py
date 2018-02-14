@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import httplib, urllib, re, sys, logging
+import http.client, urllib.request, urllib.parse, urllib.error, re, sys, logging
 from phpserialize import *
 
 class MasterServer:
@@ -59,12 +59,12 @@ class MasterServer:
 
 	def query (self, params):
 
-		conn = httplib.HTTPConnection (self.MASTERHOST)
+		conn = http.client.HTTPConnection (self.MASTERHOST)
 		conn.request ("POST", self.MASTERURL, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()
@@ -76,12 +76,12 @@ class MasterServer:
 
 	def queryserver (self, params):
 		url = "/irc_updater/svr_request_pub.php"
-		conn = httplib.HTTPConnection (self.MASTERHOST)
+		conn = http.client.HTTPConnection (self.MASTERHOST)
 		conn.request ("POST", url, params, self.headers)
 
 		response = conn.getresponse()
 
-		if response.status <> 200:
+		if response.status != 200:
 			return None
 
 		data = response.read()

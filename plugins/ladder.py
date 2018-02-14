@@ -15,7 +15,7 @@ class ladder(ConsolePlugin):
 
 	def onPluginLoad(self, config):
 		self.config = config
-		print("ladder version: %s" % (self.version))
+		print(("ladder version: %s" % (self.version)))
 
 	def onMessage (self, *args, **kwargs):
 		pass
@@ -26,7 +26,7 @@ class ladder(ConsolePlugin):
 
 	def saveLadder (self, serverstring):
 		if self.debug:
-			print serverstring
+			print(serverstring)
 
 		chunks = serverstring.split (' ');
 		if len(chunks) != 4 or chunks[0] != 'LADDER':
@@ -56,8 +56,8 @@ class ladder(ConsolePlugin):
 		l_unit = l_unit.replace ('Player_', '').lower ()
 
 		if self.debug:
-			print "w_player_id: %s\n w_unit: %s\n w_hp_start: %s\n w_hp_end: %s" % (w_player_id, w_unit, w_hp_start, w_hp_end)
-			print "l_player_id: %s\n l_unit: %s\n l_hp_start: %s" % (l_player_id, l_unit, l_hp_start)
+			print("w_player_id: %s\n w_unit: %s\n w_hp_start: %s\n w_hp_end: %s" % (w_player_id, w_unit, w_hp_start, w_hp_end))
+			print("l_player_id: %s\n l_unit: %s\n l_hp_start: %s" % (l_player_id, l_unit, l_hp_start))
 
 		db = MySQLdb.connect(host="", user="", passwd="", db="")
 		c = db.cursor()

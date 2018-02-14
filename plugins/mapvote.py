@@ -3,7 +3,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
@@ -25,7 +25,7 @@ class mapvote(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('maps'):
 			self.maplist.append({'name' : name, 'status' : value})
@@ -36,12 +36,12 @@ class mapvote(ConsolePlugin):
 			if (name == "minplayers"):
 				self.MINPLAYERS = value
 
-		print self.MINPLAYERS, self.VOTEPERCENT
+		print(self.MINPLAYERS, self.VOTEPERCENT)
 		pass
 
 	def onStartServer(self, *args, **kwargs):
 		
-		print 'serverstarted'
+		print('serverstarted')
 
 
 	def getPlayerByClientNum(self, cli):
@@ -147,13 +147,13 @@ class mapvote(ConsolePlugin):
 		votepercent = int(totalvotes/totalplayers) * 100
 		#At least this many players must be present to even trigger a map selection
 		if totalplayers < minplayers:
-			print totalplayers
-			print 'minplayer abort'
+			print(totalplayers)
+			print('minplayer abort')
 			return
 		#This percentage of the total number of players must vote to trigger a map selection
 		if votepercent < threshold:
-			print votepercent
-			print 'percent abort'
+			print(votepercent)
+			print('percent abort')
 			return
 
 		#determine which map has the most votes
@@ -163,13 +163,13 @@ class mapvote(ConsolePlugin):
 			d.setdefault(maps,0)
 			d[maps] += 1
 
-		items = [(v, k) for k, v in d.items()]
+		items = [(v, k) for k, v in list(d.items())]
 		items.sort()
 		items.reverse()           
 		size = len(items)
 		if size > 1:
 			if items[0][0] == items[1][0]:
-				print 'we have a tie'
+				print('we have a tie')
 				tie = True	
 		if tie:
 			kwargs['Broadcast'].broadcast("Serverchat ^cThere is a tie between ^r%s ^cand ^r%s. ^cIf you would like to change your vote you may do so." % (items[0][1], items[1][1]))
@@ -256,7 +256,7 @@ class mapvote(ConsolePlugin):
 			d.setdefault(maps,0)
 			d[maps] += 1
 
-		items = [(v, k) for k, v in d.items()]
+		items = [(v, k) for k, v in list(d.items())]
 		items.sort()
 		items.reverse()
 

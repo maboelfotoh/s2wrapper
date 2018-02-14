@@ -4,7 +4,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 from MasterServer import MasterServer
 from StatsServers import StatsServers
@@ -53,7 +53,7 @@ class tournament(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('admin'):
 			self.adminlist.append(name)
@@ -72,7 +72,7 @@ class tournament(ConsolePlugin):
 
 		
 	def onStartServer(self, *args, **kwargs):
-		print 'SERVER RESTARTED'
+		print('SERVER RESTARTED')
 		self.statuelist = []
 		self.STARTED = 0
 		self.MINIMUM =  2
@@ -354,7 +354,7 @@ class tournament(ConsolePlugin):
 				return
 			duelround = int(roundunit.group(1))
 			unit = (roundunit.group(2))
-			print duelround, unit
+			print(duelround, unit)
 			self.unitlist[duelround-1] = ("Player_%s" % (unit))
 
 	def doBlockers (self, toggle, **kwargs):
@@ -546,7 +546,7 @@ class tournament(ConsolePlugin):
 			self.seededlist[start]['bracket'] = bracket
 			self.seededlist[start]['advance'] = 1
 			self.winnerlist.append(self.seededlist[start])
-			print self.winnerlist
+			print(self.winnerlist)
 
 			kwargs['Broadcast'].broadcast(\
 			"ExecScript GlobalSet var R%sSA val 3;\
@@ -576,24 +576,24 @@ class tournament(ConsolePlugin):
 
 	def checkRound(self, **kwargs):
 		#figure out who has yet to fight
-		print 'at checkRound'
+		print('at checkRound')
 		bl = []
 		for brackets in self.seededlist:
 			bl.append(brackets['bracket'])
-		print bl
+		print(bl)
 
 		for item in set(bl):
 			if (bl.count(item) > 1):
-				print item
+				print(item)
 				self.nextDuel(item, **kwargs)
 				return
 			
 		self.nextRound(**kwargs)
-		print 'round over'
+		print('round over')
 		self.TOURNEYROUND += 1
 
 	def nextDuel(self, bracket, **kwargs):
-		print bracket
+		print(bracket)
 		kwargs['Broadcast'].broadcast(\
 		"ExecScript GlobalSet var CR val %s;\
 		 ExecScript GlobalSync"\
@@ -653,7 +653,7 @@ class tournament(ConsolePlugin):
 			"Execscript duelcountdown")	
 		else:
 			
-			print 'player missing'
+			print('player missing')
 
 	def waitForPlayer(self, *args, **kwargs):
 		action = args[0]
@@ -700,12 +700,12 @@ class tournament(ConsolePlugin):
 		return True
 
 	def onDeath(self, *args, **kwargs):
-		print 'got Death'
+		print('got Death')
 		#this will be called from a specific filter
 		killer = args[0]
 		killed = args[1]
 		wasduel = 0
-		print args
+		print(args)
 		if self.STARTED != 1 or self.MISSING > -1:
 			return
 		
@@ -800,7 +800,7 @@ class tournament(ConsolePlugin):
 		
 		#special condition, all remaining players are in losers bracket
 		if winners == 0:
-			print 'condition: no winners'
+			print('condition: no winners')
 			self.CURRENT = 2
 			self.seededlist = list(self.loserlist)
 			del self.loserlist[:]
@@ -808,7 +808,7 @@ class tournament(ConsolePlugin):
 
 		#special condition, all are in winners bracket
 		if losers == 0:
-			print 'condition: no losers'
+			print('condition: no losers')
 			self.CURRENT = 1
 			self.seededlist = list(self.winnerlist)
 			del self.winnerlist[:]
@@ -816,7 +816,7 @@ class tournament(ConsolePlugin):
 
 		#special condition, split brackets
 		if losers == 1 and winners == 1:
-			print 'condition: split lists'
+			print('condition: split lists')
 			self.seededlist = [self.winnerlist[0], self.loserlist[0]]
 			del self.loserlist[:]
 			del self.winnerlist[:]
@@ -824,7 +824,7 @@ class tournament(ConsolePlugin):
 
 		if self.CURRENT == 1:
 			if losers > 1:
-				print 'condition: start loser bracket'
+				print('condition: start loser bracket')
 				self.CURRENT = 2
 				self.seededlist = list(self.loserlist)
 				self.loserlist = []
@@ -836,7 +836,7 @@ class tournament(ConsolePlugin):
 				return
 		if self.CURRENT == 2:
 			if winners > 1:
-				print 'condition: start winner bracket'
+				print('condition: start winner bracket')
 				self.CURRENT = 1
 				self.seededlist = list(self.winnerlist)
 				self.winnerlist = []
@@ -847,12 +847,12 @@ class tournament(ConsolePlugin):
 				self.loserlist = []
 				return
 		
-		print self.seededlist
+		print(self.seededlist)
 				
 	def nextRound(self, **kwargs):
 		kwargs['Broadcast'].broadcast("ExecScript GlobalClear; ClientExecScript -1 releasemove")
 		
-		print 'made it to nextRound'
+		print('made it to nextRound')
 		remaining = 0
 		self.TOURNEYROUND += 1
 		kwargs['Broadcast'].broadcast("ExecScript GlobalSet var TR val %s" % (self.TOURNEYROUND))
@@ -866,7 +866,7 @@ class tournament(ConsolePlugin):
 			if remaining == 1:
 				self.endTourney(**kwargs)
 				return
-			print winners, losers
+			print(winners, losers)
 			self.swapList(winners, losers)
 
 		remaining = self.getRemaining(self.seededlist, **kwargs)
@@ -925,7 +925,7 @@ class tournament(ConsolePlugin):
 			start += 1
 			end -= 1
 
-		print self.seededlist
+		print(self.seededlist)
 		self.checkRound(**kwargs)
 
 	def getRemaining(self, getlist, **kwargs):
@@ -1020,7 +1020,7 @@ class tournament(ConsolePlugin):
 			lowest = ltarget
 			pick = each
 
-		print pick
+		print(pick)
 		pick['bye'] = 1
 		pick['advance'] = 1
 

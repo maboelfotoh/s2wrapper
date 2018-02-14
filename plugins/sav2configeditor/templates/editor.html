@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %} Global config {% endblock title %}
+{% block main %}
+  <form>
+    <ul class='nav nav-tabs' role='tablist'>
+      {% for k, v in ctx.settings.items() %}
+        <li class='nav-item'>
+          <a href="#{{k}}" class='nav-link' data-toggle='tab' role='tab'>{{k}}</a>
+        </li>
+      {% endfor %}
+    </ul>
+    <div class='tab-content' >
+      {% for k, v in ctx.settings.items() %}
+        <div id="{{k}}" class='tab-pane fade' role='tabpanel'>
+            {% for k2, v2 in v.items() %}
+              <a class='btn btn-primary' role='button' data-toggle='collapse' href='#collapse-{{k2}}'>{{k2}}</a>
+              <ul class='collapse' id='collapse-{{k2}}'>
+                  {% for k3, v3 in v2.items() %}
+                    <li>
+                      <input style="color: white;" class="input" type='text' {%- if v3 %} value="{{v3}}" {%endif-%} id="{{k}}_{{k2}}_{{k3}}">
+                      <label for="{{k}}_{{k2}}_{{k3}}">{{k3}} (default = {{v3}})</label>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  </form>
+{% endblock main %}
+
+{% block script %}
+{% endblock script %}
+
+<!-- vim: set ts=2 sw=2 tw=0 fdm=manual et :-->

@@ -3,7 +3,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 import os
 from MasterServer import MasterServer
@@ -32,7 +32,7 @@ class beginners(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		
 		for (name, value) in ini.items('var'):
@@ -53,7 +53,7 @@ class beginners(ConsolePlugin):
 
 		for (name, value) in ini.items('admin'):
 			self.adminlist.append({'name': name, 'level' : value})
-		print self.adminlist
+		print(self.adminlist)
 		pass
 
 	def onStartServer(self, *args, **kwargs):
@@ -88,7 +88,7 @@ class beginners(ConsolePlugin):
 		ip = args[2]
 		for client in self.playerlist:
 			if (client['clinum'] == id):
-				print 'already have entry with that clientnum!'
+				print('already have entry with that clientnum!')
 				return
 
 		for each in self.ipban:
@@ -170,7 +170,7 @@ class beginners(ConsolePlugin):
 		if doKick:
 			kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (cli, reason))
 
-		print client
+		print(client)
 
 	def onTeamChange (self, *args, **kwargs):
 		
@@ -248,8 +248,8 @@ class beginners(ConsolePlugin):
 		killer = self.getPlayerByName(args[1])
 		
 		killer['kills'] += 1
-		print killer
-		print killed
+		print(killer)
+		print(killed)
 
 	def smurfCheck(self, **kwargs):
 		

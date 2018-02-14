@@ -28,10 +28,10 @@ def discover(path = None):
 	if path:
 		_path = path
 	if not _path:
-		print("%s: _path is not set" % (__name__))
+		print(("%s: _path is not set" % (__name__)))
 		return
 
-	print("%s: search path: %s" % (__name__, _path))
+	print(("%s: search path: %s" % (__name__, _path)))
 	plugins = [x[:-3] for x in os.listdir(_path) if x.endswith(".py")]
 	sys.path.insert(0, _path)
 
@@ -39,7 +39,7 @@ def discover(path = None):
 		try:
 			_imports.append(__import__(name))
 		except Exception as e:
-			print("%s: %s produced an error: %s" % (__name__, name , e))
+			print(("%s: %s produced an error: %s" % (__name__, name , e)))
 	return
 
 def getEnabled(type):
@@ -53,7 +53,7 @@ def reload(name):
 			break
 
 	if not mod:
-		print("%s: %s not found" % (__name__, name))
+		print(("%s: %s not found" % (__name__, name)))
 		return
 
 	disable(name)
@@ -78,10 +78,10 @@ def disable(name):
 			_instances.remove (inst)
 			del inst
 
-			print("%s: %s has been disabled" % (__name__, name))
+			print(("%s: %s has been disabled" % (__name__, name)))
 			return True
 
-	print("%s: %s is not enabled" % (__name__, name))
+	print(("%s: %s is not enabled" % (__name__, name)))
 	return False
 
 
@@ -102,20 +102,20 @@ def find (pluginName):
 def enable(name):
 	cls = find(name)
 	if not cls:
-		print("%s: %s not found" % (__name__, name))
+		print(("%s: %s not found" % (__name__, name)))
 		return False
 
 	try:
 		inst = cls()
 		_instances.append(inst)
 		config = "%s.ini" % os.path.join(_path, name)
-		print("%s: %s config: %s" % (__name__, name, config))
+		print(("%s: %s config: %s" % (__name__, name, config)))
 		inst.onPluginLoad(config)
 	except Exception as e:
-		print("%s: %s error: %s" % (__name__, name , e))
+		print(("%s: %s error: %s" % (__name__, name , e)))
 		return False
 
-	print("%s: %s has been enabled" % (__name__, name))
+	print(("%s: %s has been enabled" % (__name__, name)))
 	return True
 
 def list():

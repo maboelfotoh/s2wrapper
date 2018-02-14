@@ -1,0 +1,18 @@
+<nav class='nav flex-column sidebar'>
+  <div class='nav-item logo'>
+    <a href="{{url_for('.index')}}" class='brand-logo' id='logo-container'>
+      <object id='front-page-logo' type="image/png"  class='nav-link' data='{{url_for('static', filename='img/logo.png')}}'></object>
+    </a>
+  </div>
+  <div class='nav-item'>
+    <a href="{{url_for('.full')}}" class='nav-link'>Entire config</a>
+  </div>
+  <div class='nav-item'>
+    <a href="{{url_for('.humans')}}" class='nav-link'>Humans</a>
+  </div>
+  <div class='nav-item'>
+    <a href="{{url_for('.beasts')}}" class='nav-link'>Beasts</a>
+  </div>
+</nav>
+
+<!-- vim: set ts=2 sw=2 tw=0 fdm=manual ft=htmljinja et :-->

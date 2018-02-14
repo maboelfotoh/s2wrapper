@@ -2,7 +2,7 @@
 
 import os
 import re
-import ConfigParser
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
@@ -24,15 +24,15 @@ class limit(ConsolePlugin):
 		self.config = self.CONFIG_DEFAULT.copy()
 		self.ms = MasterServer()
 
-		print(self.config)
-		ini = ConfigParser.ConfigParser()
+		print((self.config))
+		ini = configparser.ConfigParser()
 		ini.read(config)
-		for name in self.config.keys():
+		for name in list(self.config.keys()):
 			try:
 				self.config[name] = ini.get('limit', name)
 			except:
 				raise
-		print(self.config)
+		print((self.config))
 
 		pass
 

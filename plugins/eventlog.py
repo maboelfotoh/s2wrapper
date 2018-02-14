@@ -4,7 +4,7 @@ import os
 import re
 import time
 import threading
-import ConfigParser
+import configparser
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 from operator import itemgetter
@@ -34,7 +34,7 @@ class eventlog(ConsolePlugin):
 
 	def onPluginLoad(self, config, **kwargs):
 		#TODO: read stats directory from sendstats.ini, put that before .event file that gets written
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 
 		stats = os.path.join(os.path.dirname(config),'sendstats.ini')	
@@ -229,7 +229,7 @@ class eventlog(ConsolePlugin):
 
 		self.MATCH = args[0]
 		self.SERVER = args[1]
-		print self.MATCH
+		print(self.MATCH)
 
 	def getObjectType(self, indextype):
 		

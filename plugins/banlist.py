@@ -2,7 +2,7 @@
 
 import os
 import re
-import ConfigParser
+import configparser
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 
@@ -17,7 +17,7 @@ class banlist(ConsolePlugin):
 		self.bans  = {}
 		self.regex = []
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('banlist'):
 			if   name == "@reason":
@@ -27,8 +27,8 @@ class banlist(ConsolePlugin):
 			else:
 				self.bans[name] = value
 
-		print("bans : %s" % self.bans)
-		print("regex: %s" % self.regex)
+		print(("bans : %s" % self.bans))
+		print(("regex: %s" % self.regex))
 
 
 	def onSetName(self, *args, **kwargs):

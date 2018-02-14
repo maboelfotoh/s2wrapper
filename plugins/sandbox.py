@@ -2,7 +2,7 @@
 import re
 import math
 import time
-import ConfigParser
+import configparser
 import threading
 import random
 import os
@@ -12,7 +12,7 @@ from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
 from operator import itemgetter
 from random import choice
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import subprocess
 from mapvote import mapvote
 
@@ -26,7 +26,7 @@ class sandbox(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 		self.CONFIG = config
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for (name, value) in ini.items('modders'):
 			self.leaderlist.append({'name': name, 'level' : value})
@@ -35,7 +35,7 @@ class sandbox(ConsolePlugin):
 	def reload_config(self):
 		
 		self.leaderlist = []
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(self.CONFIG)
 
 		for (name, value) in ini.items('modders'):
@@ -45,7 +45,7 @@ class sandbox(ConsolePlugin):
 	
 		config = os.path.realpath(os.path.dirname (os.path.realpath (__file__)) + "/../s2wrapper.ini")
 		
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		for name in ini.options('plugins'):
 			if name == 'sandbox':
@@ -468,7 +468,7 @@ class sandbox(ConsolePlugin):
 		if (phase == 6):
 		#fetch leader list and reload at the start of each game
 			try:
-				response = urllib2.urlopen('http://cedeqien.com/modders.ini')
+				response = urllib.request.urlopen('http://cedeqien.com/modders.ini')
 				leaderlist = response.read()
 				leaderfile = os.path.join(os.path.dirname(self.CONFIG),'modders.ini')
 				with open(leaderfile, 'w') as f:

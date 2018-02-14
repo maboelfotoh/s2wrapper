@@ -244,7 +244,7 @@ and directories.
         
         try:
             file_hdl = file(path, 'wb')
-        except IOError, e:
+        except IOError as e:
             chan.send('\x01'+e.message)
             chan.close()
             raise
@@ -297,7 +297,7 @@ and directories.
             self._dirtimes[path] = (self._utime)
             self._utime = None
             self._recv_dir = path
-        except (OSError, SCPException), e:
+        except (OSError, SCPException) as e:
             self.channel.send('\x01'+e.message)
             raise
 

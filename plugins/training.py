@@ -4,7 +4,7 @@ import os
 import re
 import math
 import time
-import ConfigParser
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
@@ -23,7 +23,7 @@ class training(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		#for (name, value) in config.items('balancer'):
 		#	if (name == "level"):
@@ -36,7 +36,7 @@ class training(ConsolePlugin):
 
 	def onPhaseChange(self, *args, **kwargs):
 		phase = int(args[0])
-		print ('Current phase: %d' % (phase))
+		print(('Current phase: %d' % (phase)))
 		if (phase == 5):
 			self.onGameStart(*args, **kwargs)
 			
@@ -95,9 +95,9 @@ class training(ConsolePlugin):
 		cli = args[0]
 		index = self.getPlayerIndex(cli)
 		#index = self.playerlist.index(clinum[cli])
-		print index
+		print(index)
 		del self.playerlist[index]
-		print self.playerlist
+		print(self.playerlist)
 
 	def getPlayerIndex (self, cli):
 		
@@ -110,7 +110,7 @@ class training(ConsolePlugin):
 
 	def onSetName(self, *args, **kwargs):
 
-		print args
+		print(args)
 		
 		cli = args[0]
 		playername = args[1]
@@ -160,7 +160,7 @@ class training(ConsolePlugin):
 		cli = args[0]
 		client = self.getPlayerByClientNum(cli)
 		client['team'] = team	
-		print self.playerlist
+		print(self.playerlist)
 
 	def onMessage(self, *args, **kwargs):
 		# process only ALL chat messages

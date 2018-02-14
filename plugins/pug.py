@@ -4,7 +4,7 @@ import re
 import math
 import time
 import threading
-import ConfigParser
+import configparser
 from MasterServer import MasterServer
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler
@@ -26,7 +26,7 @@ class pug(ConsolePlugin):
 	def onPluginLoad(self, config):
 		self.ms = MasterServer ()
 
-		ini = ConfigParser.ConfigParser()
+		ini = configparser.ConfigParser()
 		ini.read(config)
 		'''
 		for (name, value) in ini.items('var'):
@@ -258,7 +258,7 @@ class pug(ConsolePlugin):
 				#pickthread = threading.Thread(target=self.ingame_picking, args=(caller, client, player, None), kwargs=kwargs)
 				#pickthread.start()
 				#self.ingame_picking(caller, client, player, **kwargs)
-				print 'Will go to ingame picking'
+				print('Will go to ingame picking')
 			if caller == self.startinfo['h_captain']:
 				#check players status
 				if not player['play']:

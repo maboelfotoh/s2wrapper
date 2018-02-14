@@ -17,7 +17,7 @@ import signal
 import readline, subprocess, re
 import threading
 from collections import deque
-import ConfigParser
+import configparser
 import stty
 from threading import Timer
 import string
@@ -136,7 +136,7 @@ class ConsoleParser:
 			try:
 				handler(*match.groups(), Broadcast=dh)
 			except Exception as e:
-				print("Error in: %s: %s" % (repr(handler), e))
+				print(("Error in: %s: %s" % (repr(handler), e)))
 
 
 	# SGame: Server Status: Map(ss2010_6) Timestamp(69180000) Active Clients(9) Disconnects(160) Entities(1700) Snapshots(34671)
@@ -323,7 +323,7 @@ class Savage2Thread(threading.Thread):
 
 		argenv = string.splitfields(config['env'], '=')
 
-		print("starting: %s" % (args))
+		print(("starting: %s" % (args)))
 		sav2env = os.environ.copy()
 		if len(argenv) == 2:
 			sav2env[argenv[0].strip()] = argenv[1].strip()
@@ -341,7 +341,7 @@ class Savage2Thread(threading.Thread):
 
 		fds = {OutStream(self.out_r), OutStream(self.err_r)}
 
-		print("[%s] has started successfully" % (self.process.pid))
+		print(("[%s] has started successfully" % (self.process.pid)))
 		try:
 			self.read(fds)
 		except Exception as e:
@@ -373,7 +373,7 @@ class Savage2Thread(threading.Thread):
 
                     if not readable:
                         # This OutStream is finished.
-			print("IOError: fileno:%s is closed." % f._fileno)
+			print(("IOError: fileno:%s is closed." % f._fileno))
                         fds.remove(f)
 
 		if not fds:
@@ -439,7 +439,7 @@ class Savage2Daemon:
 		self.thread.process.kill()
 
 	def onConsoleMessage (self, line):
-		print("%s" % line)
+		print(("%s" % line))
 	
 		for plugin in PluginsManager.getEnabled (PluginsManager.ConsoleParser):
 			plugin.onLineReceived (line, self.dh)
@@ -463,9 +463,9 @@ def config_dump(config):
 
 def config_read(cfgs, config = None):
 	if not config:
-		config = ConfigParser.ConfigParser()
+		config = configparser.ConfigParser()
 
-	print("config_read(): %s" % (cfgs))
+	print(("config_read(): %s" % (cfgs)))
 	if config.read(cfgs):
 		#config_dump(config)
 		pass
@@ -473,7 +473,7 @@ def config_read(cfgs, config = None):
 	return config
 
 def config_write(filename, config):
-	print("config_write(): %s" % (filename))
+	print(("config_write(): %s" % (filename)))
 	with open(os.path.expanduser(filename), "wb") as f:
 		config.write(f)
 	return
@@ -524,9 +524,9 @@ if __name__ == "__main__":
 		while True:
 			# block till user input
 			try:
-				line = raw_input("")
+				line = eval(input(""))
 			except EOFError:
-				print("%s: caught EOF, what should i do?" % (__name__))
+				print(("%s: caught EOF, what should i do?" % (__name__)))
 				continue
 
 			# get command and argument as 2 strings
@@ -542,7 +542,7 @@ if __name__ == "__main__":
 
 			if cmd == "plugins":
 				if not arg:
-					print("Syntax: %s <command>" % (cmd))
+					print(("Syntax: %s <command>" % (cmd)))
 					continue
 
 				args = arg.split(None, 1)
@@ -552,9 +552,9 @@ if __name__ == "__main__":
 					if   cmd2 == "discover":
 						PluginsManager.discover()
 					elif cmd2 == "list":
-						print("\n".join(PluginsManager.list()))
+						print(("\n".join(PluginsManager.list())))
 					else:
-						print("%s: %s: unknown command" % (cmd, cmd2))
+						print(("%s: %s: unknown command" % (cmd, cmd2)))
 				else:
 					if   cmd2 == "reload":
 						PluginsManager.reload(arg)
@@ -563,7 +563,7 @@ if __name__ == "__main__":
 					elif cmd2 == "disable":
 						PluginsManager.disable(arg)
 					else:
-						print("%s: %s: unknown command" % (cmd, cmd2))
+						print(("%s: %s: unknown command" % (cmd, cmd2)))
 
 			# pass rest through the broadcaster
 			else:
@@ -571,9 +571,9 @@ if __name__ == "__main__":
 
 			pass
 	except KeyboardInterrupt:
-		print("%s: caught SIGINT" % (__name__))
+		print(("%s: caught SIGINT" % (__name__)))
 		pass
 
 	# Clean.
-	print("%s: exiting..." % (__name__))
+	print(("%s: exiting..." % (__name__)))
 	daemon.exit()
