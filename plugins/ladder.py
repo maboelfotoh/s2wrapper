@@ -2,7 +2,11 @@
 
 import os
 import re
-import MySQLdb
+import sys
+if sys.platform.startswith('win'):
+    import pymysql
+else:
+    import MySQLdb
 
 from PluginsManager import ConsolePlugin
 from S2Wrapper import Savage2DaemonHandler

@@ -34,10 +34,10 @@ class helper(ConsolePlugin):
 
     def reload_config(self):
 
-            self.helperlist = []
-               self.ipban = []
-                ini = configparser.ConfigParser()
-                ini.read(self.CONFIG)
+        self.helperlist = []
+        self.ipban = []
+        ini = configparser.ConfigParser()
+        ini.read(self.CONFIG)
 
         for (name, value) in ini.items('helpers'):
             self.helperlist.append({'name': name, 'level' : value})

@@ -2,13 +2,10 @@
 
 import errno
 import os
-import pty
 import select
 import subprocess
 import re
-import termios
 import struct
-import fcntl
 
 import sys
 import time
@@ -17,6 +14,13 @@ from collections import deque
 import configparser
 import string
 
+if sys.platform.startswith('win'):
+    from pywinauto.application import Application
+    from pywinauto.keyboard import send_keys
+else:
+    import pty
+    import termios
+    import fcntl
 
 class Savage2ConsoleHandler:
 
@@ -310,40 +314,74 @@ class Savage2Thread(threading.Thread):
     def launchDaemon (self):
         self.alive = True
         Savage2DaemonHandler.addChannel (self.onDaemonMessage)
-
+		
         config = self.config
         args = [config['exec']]
         if config['args']:
-            args += [config['args']]
+            if sys.platform.startswith('win'):
+                args += ['"' + config['args'] + '"']
+            else:
+                args += [config['args']]
                 args[1] += ';Set sys_dedicatedConsole true;Set sys_debugOutput true'
 
-        argenv = string.splitfields(config['env'], '=')
+        #argenv = string.splitfields(config['env'], '=')
+        argenv = config['env'].split('=')
 
         print(("starting: %s" % (args)))
         sav2env = os.environ.copy()
         if len(argenv) == 2:
             sav2env[argenv[0].strip()] = argenv[1].strip()
 
+        if sys.platform.startswith('win'):
+            os.chdir(os.path.dirname(config['exec']))
+            self.app = Application().start('"' + ' '.join(args) + '"')
+            #print(("[%s] has started successfully" % (self.app.process_id())))
+            try:
+                self.readwin()
+            except Exception as e:
+                self.clean()
+                if self._relaunch:
+                    self.relaunch()
+        else:
+            # Start the subprocess.
+            self.out_r, out_w = pty.openpty()
+            self.err_r, err_w = pty.openpty()
+            set_winsize(self.out_r, 1000, 1000)
+            set_winsize(self.err_r, 1000, 1000)
+		
+            self.process = subprocess.Popen(args, env=sav2env, stdin=subprocess.PIPE, stderr=err_w, stdout=out_w, universal_newlines=True)
+            os.close(out_w) # if we do not write to process, close these.
+            os.close(err_w)
 
-        # Start the subprocess.
-        self.out_r, out_w = pty.openpty()
-        self.err_r, err_w = pty.openpty()
-        set_winsize(self.out_r, 1000, 1000)
-        set_winsize(self.err_r, 1000, 1000)
+            fds = {OutStream(self.out_r), OutStream(self.err_r)}
 
-        self.process = subprocess.Popen(args, env=sav2env, stdin=subprocess.PIPE, stderr=err_w, stdout=out_w, universal_newlines=True)
-        os.close(out_w) # if we do not write to process, close these.
-        os.close(err_w)
+            print(("[%s] has started successfully" % (self.process.pid)))
+            try:
+                self.read(fds)
+            except Exception as e:
+                self.clean()
+                if self._relaunch:
+                    self.relaunch()
 
-        fds = {OutStream(self.out_r), OutStream(self.err_r)}
-
-        print(("[%s] has started successfully" % (self.process.pid)))
-        try:
-            self.read(fds)
-        except Exception as e:
-            self.clean()
-            if self._relaunch:
-                self.relaunch()
+    def readwin(self):
+        items = self.app["Savage 2 Dedicated ConsoleDialog"].descendants()
+        outputWindow = items[6]
+        lastIndex = 0
+        while self.alive:
+            try:
+                windowText = outputWindow.window_text()
+                prevLastIndex = lastIndex
+                lastIndex = windowText.rfind('\n', lastIndex)
+                newOutput = windowText[prevLastIndex:lastIndex]
+                lines = newOutput.split('\n')
+                for line in lines:
+                    line = ansi_escape.sub('', line)
+                    line = sav2color_escape.sub('', line)
+                    if line == ">":
+                        continue
+                    Savage2ConsoleHandler.broadcast(stripped(line))
+            except InterruptedError:
+                continue
 
     def read(self, fds):
             while self.alive and fds:
@@ -369,13 +407,13 @@ class Savage2Thread(threading.Thread):
 
                     if not readable:
                         # This OutStream is finished.
-            print(("IOError: fileno:%s is closed." % f._fileno))
+                        print(("IOError: fileno:%s is closed." % f._fileno))
                         fds.remove(f)
 
-        if not fds:
-            print('relaunch')
-            if self._relaunch:
-                self.relaunch()
+            if not fds:
+                print('relaunch')
+                if self._relaunch:
+                    self.relaunch()
 
     def relaunch(self):
         # don't go crazy spawning process too fast, sleep some instead
@@ -388,10 +426,14 @@ class Savage2Thread(threading.Thread):
 
     def write(self, line):
         try:
-            if self.process:
-                self.process.stdin.write (line + "\n")
+            if sys.platform.startswith('win'):
+                self.app.Dialog.type_keys(line, with_spaces=True, set_foreground=True)
+                self.app.Dialog.type_keys('{ENTER}', set_foreground=False)
             else:
-                print('foo')
+                if self.process:
+                    self.process.stdin.write (line + "\n")
+                else:
+                    print('foo')
         except IOError:
             self.clean()
             if self.relaunch:
@@ -416,13 +458,19 @@ class Savage2Daemon:
     def __init__(self, config):
         self.config = config
 
+        print(("%s: setup our broadcasters" % (__name__)))
+		
         # Setup our broadcasters
         Savage2ConsoleHandler ()
         self.dh = Savage2DaemonHandler ()
+		
+        print(("%s: add callbacks for messages" % (__name__)))
 
         # Add callback's for messages
         Savage2ConsoleHandler.addChannel (self.onConsoleMessage)
 
+        print(("%s: launch savage2 thread" % (__name__)))
+		
         # Launch savage2 thread
         # this thread will run and handle savage2 dedicated server
         # relaunching it on savage2.bin exit.
@@ -432,7 +480,10 @@ class Savage2Daemon:
 
     def exit(self):
         self.thread.alive = False
-        self.thread.process.kill()
+        if sys.platform.startswith('win'):
+            self.thread.app.kill()
+        else:
+            self.thread.process.kill()
 
     def onConsoleMessage (self, line):
         print(("%s" % line))
@@ -511,16 +562,23 @@ if __name__ == "__main__":
             continue
         if config.getboolean('plugins', name):
             PluginsManager.enable(name)
+			
+    print(("%s: launch daemon" % (__name__)))
 
     # launch daemon
     daemon = Savage2Daemon(config)
+	
+    print(("%s: catch keyboard interrupts loop" % (__name__)))
 
     # Catch keyboard interrupts, while we run our main while.
     try:
         while True:
             # block till user input
             try:
-                line = eval(input(""))
+                if sys.platform.startswith('win'):
+                    line = input("")
+                else:
+                    line = eval(input(""))
             except EOFError:
                 print(("%s: caught EOF, what should i do?" % (__name__)))
                 continue

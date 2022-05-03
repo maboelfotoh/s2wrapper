@@ -55,22 +55,22 @@ class admin(ConsolePlugin):
 
     def reload_config(self):
 
-            self.adminlist = []
-               self.ipban = []
-                ini = configparser.ConfigParser()
-                ini.read(self.CONFIG)
+        self.adminlist = []
+        self.ipban = []
+        ini = configparser.ConfigParser()
+        ini.read(self.CONFIG)
 
         banini = configparser.ConfigParser ()
         banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
         banini.read (banconfig)
 
-                for (name, value) in ini.items('admin'):
-                    self.adminlist.append({'name': name, 'level' : value})
+        for (name, value) in ini.items('admin'):
+            self.adminlist.append({'name': name, 'level' : value})
 
-                for (name, value) in banini.items('ban'):
-                    self.fullbanlist.append({'name': name, 'level' : value})
-                for (name, value) in banini.items('ipban'):
-                    self.ipban.append(name)
+        for (name, value) in banini.items('ban'):
+            self.fullbanlist.append({'name': name, 'level' : value})
+        for (name, value) in banini.items('ipban'):
+            self.ipban.append(name)
 
     def reload_plugins(self):
 
@@ -137,7 +137,7 @@ class admin(ConsolePlugin):
                 reason = "You are banned from this server."
                 kwargs['Broadcast'].broadcast(\
          "clientexecscript %s clientdo cmd \"SetSave host_onload true; SetSave host_created 1; WriteConfigScript ~/startup.cfg\"" % (id))
-                 kwargs['Broadcast'].broadcast(\
+                kwargs['Broadcast'].broadcast(\
          "clientexecscript %s clientdo cmd \"quit\"" % (id))
                 kwargs['Broadcast'].broadcast("kick %s \"%s\"" % (id, reason))
                 return
@@ -203,9 +203,9 @@ class admin(ConsolePlugin):
         #kwargs['Broadcast'].broadcast(\
          #"clientexecscript %s clientdo cmd \"set _vr #StringLength(|#GetCheckSum(cgame.dll)|#)#; if [_vr > 0] \\\"SendScriptInput what DLL value #getchecksum(cgame.dll)#\\\"; Else \\\"SendScriptInput what DLL value NONE\\\"\"" % (client['clinum']))
 
-         if karma < 0:
-             kwargs['Broadcast'].broadcast(\
-             "set _karmaflag%s 1" % (client['clinum']))
+        if karma < 0:
+            kwargs['Broadcast'].broadcast(\
+            "set _karmaflag%s 1" % (client['clinum']))
 
         #If client has disconnected, give them their gold back
         self.giveGold(False, client, **kwargs)
@@ -285,26 +285,26 @@ class admin(ConsolePlugin):
         flood = client['flood']
         print("flood: %s - %f - %f = %f" % (flood['count'], time.time (), flood['time'], (time.time ()-flood['time'])))
 
-                # Sickened2: spam-check based on message length and checksum
-                msglen = len(list(message))
-                if msglen > 100:
-                        # this should be a lookup table for checksums of typical spam messages
-                        spam1chksum = "ec10ca635bb6b956959830f4e652369d"
-                        m = hashlib.md5()
-                        m.update(message[:100])
-                        chksum = m.hexdigest()
-                        if chksum == spam1chksum:
-                                reason = "Attention! Spamming results in automatic kicking."
-                                kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
-                        elif not client['msgsum']:
-                                client['msgsum'] = chksum
-                                #print "Checksum"
-                                #print client['msgsum']
-                        elif client['msgsum'] == chksum:
-                                reason = "Attention! Spamming results in automatic kicking."
-                                kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
-                        else:
-                                client['msgsum'] = chksum
+        # Sickened2: spam-check based on message length and checksum
+        msglen = len(list(message))
+        if msglen > 100:
+                # this should be a lookup table for checksums of typical spam messages
+                spam1chksum = "ec10ca635bb6b956959830f4e652369d"
+                m = hashlib.md5()
+                m.update(message[:100])
+                chksum = m.hexdigest()
+                if chksum == spam1chksum:
+                        reason = "Attention! Spamming results in automatic kicking."
+                        kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+                elif not client['msgsum']:
+                        client['msgsum'] = chksum
+                        #print "Checksum"
+                        #print client['msgsum']
+                elif client['msgsum'] == chksum:
+                        reason = "Attention! Spamming results in automatic kicking."
+                        kwargs['Broadcast'].broadcast("Kick %s \"%s\"" % (clinum, reason))
+                else:
+                        client['msgsum'] = chksum
 
         # Sickened2: the following method is not as effective because
         # 1) for large messages (e.g. > 250 bytes) part of the message is returned. For the same message length the
@@ -404,9 +404,9 @@ class admin(ConsolePlugin):
                 "Kick %s \"%s\"" \
                  % (kickclient['clinum'], reason))
 
-                    banini = configparser.ConfigParser ()
-                    banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
-                    banini.read (banconfig)
+            banini = configparser.ConfigParser ()
+            banconfig = os.path.dirname(self.CONFIG) + "/ban.ini"
+            banini.read (banconfig)
             banini.set ('ipban', kickclient['ip'], kickclient['name'])
             banini.write (open(banconfig, 'wb'))
             self.ipban.append(kickclient['ip'])
@@ -566,7 +566,7 @@ class admin(ConsolePlugin):
             kwargs['Broadcast'].broadcast(\
             "SendMessage -1 ^y Team One (%s players) Avg. SF is ^r%s^y median is ^r%s^y, Team Two (%s players) Avg. SF is ^r%s^y median is ^r%s.^y Stack value: ^r%s" \
              % (teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'], 1), round(teamtwostats['median'],1), abs(stack)))
-             return
+            return
 
         kwargs['Broadcast'].broadcast(\
         "SendMessage %s ^y Team One (%s players) Avg. SF is ^r%s^y median is ^r%s^y, Team Two (%s players) Avg. SF is ^r%s^y median is ^r%s. ^yStack value: ^r%s" \
@@ -621,7 +621,7 @@ class admin(ConsolePlugin):
             #kwargs['Broadcast'].broadcast(\
         #"SendMessage %s ^cProposed change: ^y Team One (%s players) Avg. SF: ^r%s^y median SF: ^r%s^y, Team Two (%s players) Avg. SF: ^r%s^y median SF: ^r%s. ^yStack value: ^r%s" \
         #% (clinum, teamonestats['size'], round(teamonestats['avg'],1), round(teamonestats['median'],1), teamtwostats['size'], round(teamtwostats['avg'],1), round(teamtwostats['median'], 1), abs(stack)))
-             return
+            return
 
         if doBalance:
             #Do the switch
